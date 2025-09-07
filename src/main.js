@@ -155,10 +155,9 @@ function updateLEDs(dt){
   for (const k in ledRefs) {
     const el = ledRefs[k];
     const on = ledTimers[k] > 0;
-    el.classList.toggle('bg-[#6be3ff]', on);
-    el.classList.toggle('text-[#00121f]', on);
-    el.classList.toggle('border-[#89f0ff]', on);
-    el.classList.toggle('opacity-55', !on);
+    el.classList.toggle('bg-cyan-300', on);
+    el.classList.toggle('text-black', on);
+    el.classList.toggle('opacity-50', !on);
   }
 }
 
