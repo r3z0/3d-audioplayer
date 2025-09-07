@@ -20,13 +20,19 @@ export class AudioReactive {
 
     this._timeData = null;
     this._spectrum = null;
+    this.preHpfAnalyser = null;
     this.hpf = null;
+    this.preLpfAnalyser = null;
     this.lpf = null;
     this.filters = [];
     this.eqFreqs = [];
     this.rawAnalyser = null;
     this.eqAudioEnabled = true;
     this.eqLedEnabled = true;
+    this.hpfAudioEnabled = true;
+    this.hpfLedEnabled = true;
+    this.lpfAudioEnabled = true;
+    this.lpfLedEnabled = true;
   }
 
   async _ensureCtx() {
@@ -37,9 +43,18 @@ export class AudioReactive {
       this.analyser = ctx.createAnalyser();
       this.analyser.fftSize = this.fftSize;
       this.analyser.smoothingTimeConstant = 0.8;
+
+      this.preHpfAnalyser = ctx.createAnalyser();
+      this.preHpfAnalyser.fftSize = this.fftSize;
+      this.preHpfAnalyser.smoothingTimeConstant = 0.8;
+
       this.rawAnalyser = ctx.createAnalyser();
       this.rawAnalyser.fftSize = this.fftSize;
       this.rawAnalyser.smoothingTimeConstant = 0.8;
+
+      this.preLpfAnalyser = ctx.createAnalyser();
+      this.preLpfAnalyser.fftSize = this.fftSize;
+      this.preLpfAnalyser.smoothingTimeConstant = 0.8;
       this._timeData = new Float32Array(this.analyser.fftSize);
       this._spectrum = new Uint8Array(this.analyser.frequencyBinCount);
       this.gain.gain.value = 0.8;
@@ -66,31 +81,70 @@ export class AudioReactive {
         bi.gain.value = 0;
         return bi;
       });
-      // connect: hpf -> rawAnalyser -> filters (optional) -> lpf -> analyser -> gain -> destination
-      this.hpf.connect(this.rawAnalyser);
-      this.setEqAudioEnabled(this.eqAudioEnabled);
-      this.lpf.connect(this.analyser);
+      // connect: preHpfAnalyser -> hpf -> rawAnalyser -> filters (optional) -> preLpfAnalyser -> lpf -> analyser -> gain -> destination
       this.analyser.connect(this.gain);
       this.gain.connect(ctx.destination);
+
+      // establish initial routing according to flags
+      this.setHpfAudioEnabled(this.hpfAudioEnabled);
+      this.setEqAudioEnabled(this.eqAudioEnabled);
+      this.setLpfAudioEnabled(this.lpfAudioEnabled);
     }
   }
 
   setEqAudioEnabled(enabled) {
     this.eqAudioEnabled = !!enabled;
-    if (!this.ctx || !this.rawAnalyser || !this.lpf) return;
+    if (!this.ctx || !this.rawAnalyser || !this.preLpfAnalyser) return;
     try { this.rawAnalyser.disconnect(); } catch {}
     this.filters.forEach(f => { try { f.disconnect(); } catch {} });
     if (this.eqAudioEnabled) {
       let prev = this.rawAnalyser;
       this.filters.forEach(f => { prev.connect(f); prev = f; });
-      prev.connect(this.lpf);
+      prev.connect(this.preLpfAnalyser);
     } else {
-      this.rawAnalyser.connect(this.lpf);
+      this.rawAnalyser.connect(this.preLpfAnalyser);
     }
   }
 
   setEqLedEnabled(enabled) {
     this.eqLedEnabled = !!enabled;
+  }
+
+  setHpfAudioEnabled(enabled) {
+    this.hpfAudioEnabled = !!enabled;
+    if (!this.ctx || !this.preHpfAnalyser || !this.rawAnalyser || !this.hpf) return;
+    try { this.preHpfAnalyser.disconnect(); } catch {}
+    try { this.hpf.disconnect(); } catch {}
+    if (this.hpfAudioEnabled) {
+      this.preHpfAnalyser.connect(this.hpf);
+      this.hpf.connect(this.rawAnalyser);
+    } else {
+      this.preHpfAnalyser.connect(this.rawAnalyser);
+    }
+  }
+
+  setLpfAudioEnabled(enabled) {
+    this.lpfAudioEnabled = !!enabled;
+    if (!this.ctx || !this.preLpfAnalyser || !this.analyser || !this.lpf) return;
+    try { this.preLpfAnalyser.disconnect(); } catch {}
+    try { this.lpf.disconnect(); } catch {}
+    if (this.lpfAudioEnabled) {
+      this.preLpfAnalyser.connect(this.lpf);
+      this.lpf.connect(this.analyser);
+    } else {
+      this.preLpfAnalyser.connect(this.analyser);
+    }
+  }
+
+  setHpfLedEnabled(enabled) { this.hpfLedEnabled = !!enabled; }
+  setLpfLedEnabled(enabled) { this.lpfLedEnabled = !!enabled; }
+
+  _getLedAnalyser() {
+    if (!this.ctx) return null;
+    if (!this.hpfLedEnabled) return this.preHpfAnalyser;
+    if (!this.eqLedEnabled) return this.rawAnalyser;
+    if (!this.lpfLedEnabled) return this.preLpfAnalyser;
+    return this.analyser;
   }
 
   async useFile(file, onProgress) {
@@ -120,7 +174,7 @@ export class AudioReactive {
     await el.play().catch(()=>{});
 
     const src = this.ctx.createMediaElementSource(el);
-    const target = this.hpf || this.filters[0] || this.analyser;
+    const target = this.preHpfAnalyser || this.hpf || this.filters[0] || this.analyser;
     src.connect(target);
 
     this._disconnectSource();
@@ -140,7 +194,7 @@ export class AudioReactive {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
 
     const src = this.ctx.createMediaStreamSource(stream);
-    const target = this.hpf || this.filters[0] || this.analyser;
+    const target = this.preHpfAnalyser || this.hpf || this.filters[0] || this.analyser;
     src.connect(target);
 
     this._disconnectSource();
@@ -206,14 +260,14 @@ export class AudioReactive {
   getEqFreqs(){ return this.eqFreqs; }
 
   getSpectrumArray() {
-    const an = this.eqLedEnabled ? this.analyser : this.rawAnalyser;
+    const an = this._getLedAnalyser();
     if (!an) return new Uint8Array(0);
     an.getByteFrequencyData(this._spectrum);
     return this._spectrum;
   }
 
   getTimeDomainArray() {
-    const an = this.eqLedEnabled ? this.analyser : this.rawAnalyser;
+    const an = this._getLedAnalyser();
     if (!an) return new Float32Array(0);
     an.getFloatTimeDomainData(this._timeData);
     return this._timeData;
@@ -249,7 +303,7 @@ export class AudioReactive {
   }
 
   getOnsets() {
-    const an = this.eqLedEnabled ? this.analyser : this.rawAnalyser;
+    const an = this._getLedAnalyser();
     if (!an) return { kick:false, snare:false, hat:false, any:false };
     an.getFloatTimeDomainData(this._timeData);
     an.getByteFrequencyData(this._spectrum);

@@ -663,10 +663,22 @@ eqPresetBtns.forEach(btn=>{
 });
 loadEq();
 
-hpfAudioToggle?.addEventListener('change', ()=>{ audio.setHpfAudioEnabled(hpfAudioToggle.checked); saveEq(); });
-hpfLedToggle?.addEventListener('change', ()=>{ audio.setHpfLedEnabled(hpfLedToggle.checked); saveEq(); });
-lpfAudioToggle?.addEventListener('change', ()=>{ audio.setLpfAudioEnabled(lpfAudioToggle.checked); saveEq(); });
-lpfLedToggle?.addEventListener('change', ()=>{ audio.setLpfLedEnabled(lpfLedToggle.checked); saveEq(); });
+hpfAudioToggle?.addEventListener('change', ()=>{
+  audio.setHpfAudioEnabled(hpfAudioToggle.checked); // enable/disable HPF in audio path
+  saveEq();
+});
+hpfLedToggle?.addEventListener('change', ()=>{
+  audio.setHpfLedEnabled(hpfLedToggle.checked); // use HPF data for LEDs
+  saveEq();
+});
+lpfAudioToggle?.addEventListener('change', ()=>{
+  audio.setLpfAudioEnabled(lpfAudioToggle.checked); // enable/disable LPF in audio path
+  saveEq();
+});
+lpfLedToggle?.addEventListener('change', ()=>{
+  audio.setLpfLedEnabled(lpfLedToggle.checked); // use LPF data for LEDs
+  saveEq();
+});
 eqAudioToggle?.addEventListener('change', ()=>{ audio.setEqAudioEnabled(eqAudioToggle.checked); saveEq(); });
 eqLedToggle?.addEventListener('change', ()=>{ audio.setEqLedEnabled(eqLedToggle.checked); saveEq(); });
 
