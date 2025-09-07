@@ -20,6 +20,7 @@ export class AudioReactive {
 
     this._timeData = null;
     this._spectrum = null;
+    this.filters = [];
   }
 
   async _ensureCtx() {
@@ -34,6 +35,22 @@ export class AudioReactive {
       this._spectrum = new Uint8Array(this.analyser.frequencyBinCount);
       this.gain.gain.value = 0.8;
 
+      // create EQ filters
+      const freqs = [32,64,125,250,500,1000,2000,4000,8000,16000];
+      this.filters = freqs.map(f => {
+        const bi = ctx.createBiquadFilter();
+        bi.type = 'peaking';
+        bi.frequency.value = f;
+        bi.Q.value = 1.0;
+        bi.gain.value = 0;
+        return bi;
+      });
+      // chain filters: source -> filters -> analyser -> gain -> destination
+      for (let i=0;i<this.filters.length-1;i++){
+        this.filters[i].connect(this.filters[i+1]);
+      }
+      const lastFilter = this.filters[this.filters.length-1];
+      lastFilter.connect(this.analyser);
       this.analyser.connect(this.gain);
       this.gain.connect(ctx.destination);
     }
@@ -65,7 +82,8 @@ export class AudioReactive {
 
     await el.play().catch(()=>{});
     const src = this.ctx.createMediaElementSource(el);
-    src.connect(this.analyser);
+    const target = this.filters[0] || this.analyser;
+    src.connect(target);
 
     this._disconnectSource();
     this.sourceNode = src;
@@ -83,7 +101,8 @@ export class AudioReactive {
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     const src = this.ctx.createMediaStreamSource(stream);
-    src.connect(this.analyser);
+    const target = this.filters[0] || this.analyser;
+    src.connect(target);
 
     this._disconnectSource();
     this.sourceNode = src;
@@ -131,6 +150,16 @@ export class AudioReactive {
   setVolume(v) { if (this.gain) this.gain.gain.value = Math.max(0, Math.min(1, v)); }
   getVolume() { return this.gain ? this.gain.gain.value : 0; }
   setSensitivity(s) { this.sensitivity = Math.max(0.1, Math.min(4, s)); }
+
+  setEqGain(band, dB) {
+    if (!this.filters?.length) return;
+    const f = this.filters[band];
+    if (f) f.gain.value = Math.max(-12, Math.min(12, dB));
+  }
+
+  getEqSettings(){
+    return this.filters?.map(f => f.gain.value) || [];
+  }
 
   getSpectrumArray() {
     if (!this.analyser) return new Uint8Array(0);
