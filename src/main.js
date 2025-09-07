@@ -163,8 +163,8 @@ function updateLEDs(dt){
 const playlistTpl = document.createElement('template');
 playlistTpl.innerHTML = `
   <div id="playlistPanel"
-       class="absolute right-3 w-64 max-h-[46vh] overflow-auto bg-slate-900/70 backdrop-blur text-blue-50 text-xs font-sans rounded-xl shadow-xl p-2.5"
-       style="z-index:1200;">
+       class="w-64 max-h-[46vh] overflow-auto bg-slate-900/70 backdrop-blur text-blue-50 text-xs font-sans rounded-xl shadow-xl p-2.5"
+       style="position:absolute; right:12px; z-index:1200;">
     <div class="flex gap-1.5 items-center mb-1.5">
       <strong class="flex-1">Playlist</strong>
       <button id="pl-prev" title="Prev">⏮</button>
