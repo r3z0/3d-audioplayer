@@ -141,10 +141,14 @@ export class AudioReactive {
 
   _getLedAnalyser() {
     if (!this.ctx) return null;
-    if (!this.hpfLedEnabled) return this.preHpfAnalyser;
-    if (!this.eqLedEnabled) return this.rawAnalyser;
-    if (!this.lpfLedEnabled) return this.preLpfAnalyser;
-    return this.analyser;
+
+    let node = this.preHpfAnalyser;
+
+    if (this.hpfAudioEnabled && this.hpfLedEnabled) node = this.rawAnalyser;
+    if (this.eqAudioEnabled && this.eqLedEnabled) node = this.preLpfAnalyser;
+    if (this.lpfAudioEnabled && this.lpfLedEnabled) node = this.analyser;
+
+    return node;
   }
 
   async useFile(file, onProgress) {
