@@ -20,7 +20,10 @@ export class AudioReactive {
 
     this._timeData = null;
     this._spectrum = null;
+    this.hpf = null;
+    this.lpf = null;
     this.filters = [];
+    this.eqFreqs = [];
   }
 
   async _ensureCtx() {
@@ -35,8 +38,20 @@ export class AudioReactive {
       this._spectrum = new Uint8Array(this.analyser.frequencyBinCount);
       this.gain.gain.value = 0.8;
 
-      // create EQ filters
+
+      // create HPF/LPF and EQ filters
+      this.hpf = ctx.createBiquadFilter();
+      this.hpf.type = 'highpass';
+      this.hpf.frequency.value = 20;
+      this.hpf.Q.value = 0.707;
+
+      this.lpf = ctx.createBiquadFilter();
+      this.lpf.type = 'lowpass';
+      this.lpf.frequency.value = 20000;
+      this.lpf.Q.value = 0.707;
+
       const freqs = [32,64,125,250,500,1000,2000,4000,8000,16000];
+      this.eqFreqs = freqs;
       this.filters = freqs.map(f => {
         const bi = ctx.createBiquadFilter();
         bi.type = 'peaking';
@@ -45,12 +60,11 @@ export class AudioReactive {
         bi.gain.value = 0;
         return bi;
       });
-      // chain filters: source -> filters -> analyser -> gain -> destination
-      for (let i=0;i<this.filters.length-1;i++){
-        this.filters[i].connect(this.filters[i+1]);
-      }
-      const lastFilter = this.filters[this.filters.length-1];
-      lastFilter.connect(this.analyser);
+      // chain filters: hpf -> filters -> lpf -> analyser -> gain -> destination
+      let prev = this.hpf;
+      this.filters.forEach(f => { prev.connect(f); prev = f; });
+      prev.connect(this.lpf);
+      this.lpf.connect(this.analyser);
       this.analyser.connect(this.gain);
       this.gain.connect(ctx.destination);
     }
@@ -81,8 +95,9 @@ export class AudioReactive {
     }
 
     await el.play().catch(()=>{});
+
     const src = this.ctx.createMediaElementSource(el);
-    const target = this.filters[0] || this.analyser;
+    const target = this.hpf || this.filters[0] || this.analyser;
     src.connect(target);
 
     this._disconnectSource();
@@ -100,8 +115,9 @@ export class AudioReactive {
     if (this.media?.el) { try { this.media.el.pause(); } catch {} }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+
     const src = this.ctx.createMediaStreamSource(stream);
-    const target = this.filters[0] || this.analyser;
+    const target = this.hpf || this.filters[0] || this.analyser;
     src.connect(target);
 
     this._disconnectSource();
@@ -160,6 +176,11 @@ export class AudioReactive {
   getEqSettings(){
     return this.filters?.map(f => f.gain.value) || [];
   }
+
+  setHighpass(freq){ if (this.hpf) this.hpf.frequency.value = Math.max(20, Math.min(1000, freq)); }
+  setLowpass(freq){ if (this.lpf) this.lpf.frequency.value = Math.min(this.ctx?.sampleRate/2 || 22050, Math.max(1000, freq)); }
+  getCutSettings(){ return { hpf: this.hpf?.frequency.value || 0, lpf: this.lpf?.frequency.value || 0 }; }
+  getEqFreqs(){ return this.eqFreqs; }
 
   getSpectrumArray() {
     if (!this.analyser) return new Uint8Array(0);
