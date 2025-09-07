@@ -10,7 +10,7 @@
   <div id="app"></div>
 
   <!-- Top HUD -->
-  <div id="appControls" class="hud">
+    <div id="appControls" class="hud">
     <div class="row">
       <button id="micBtn" title="Use Microphone">🎙️ Mic</button>
       <input id="fileInput" type="file" accept="audio/*" multiple title="Add audio files"/>
@@ -28,7 +28,7 @@
       <button id="btnPlaylist" title="Toggle Playlist">📜</button>
     </div>
 
-    <div class="row meta">
+      <div class="row meta">
       <span id="trackTitle">No track</span>
       <span id="trackStatus">stopped</span>
 
@@ -42,11 +42,37 @@
         <span id="ledSnare" class="led off">SNARE</span>
         <span id="ledHat"   class="led off">HAT</span>
       </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Settings panel -->
-  <div id="settingsPanel" class="panel" hidden>
+    <!-- Equalizer Panel -->
+    <div id="eqPanel" class="eq-panel">
+      <div id="eqSliders" class="eq-sliders">
+        <div class="eq-band"><input class="eq-slider" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
+        <div class="eq-band"><input class="eq-slider" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
+      </div>
+      <div class="eq-cuts">
+        <label>HPF <input id="hpfSlider" type="range" min="20" max="1000" step="1" value="20" /></label>
+        <label>LPF <input id="lpfSlider" type="range" min="1000" max="20000" step="100" value="20000" /></label>
+        <label class="eq-overlay"><input id="eqOverlayToggle" type="checkbox" />Overlay</label>
+      </div>
+      <div class="eq-presets">
+        <button class="eq-preset" data-preset="flat">Flat</button>
+        <button class="eq-preset" data-preset="rock">Rock</button>
+        <button class="eq-preset" data-preset="pop">Pop</button>
+      </div>
+    </div>
+
+    <!-- Settings panel -->
+    <div id="settingsPanel" class="panel" hidden>
     <div class="panel-title">Settings</div>
     <div class="panel-row">
       <label>Theme</label>

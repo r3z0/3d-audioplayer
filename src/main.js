@@ -357,6 +357,68 @@ const filmToggle = document.getElementById('filmToggle');
 const rgbToggle = document.getElementById('rgbToggle');
 const beatToggle = document.getElementById('beatToggle');
 const clearBeatsBtn = document.getElementById('clearBeats');
+const eqSliders = Array.from(document.querySelectorAll('.eq-slider'));
+const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
+const hpfSlider = document.getElementById('hpfSlider');
+const lpfSlider = document.getElementById('lpfSlider');
+const eqOverlayToggle = document.getElementById('eqOverlayToggle');
+
+const EQ_PRESETS = {
+  flat: new Array(10).fill(0),
+  rock: [4,3,2,1,0,0,1,2,3,4],
+  pop:  [-1,0,1,3,5,3,1,0,-1,-2]
+};
+
+function applyEqGains(values){
+  values.forEach((v,i)=>{
+    if(eqSliders[i]){
+      eqSliders[i].value = v;
+      audio.setEqGain(i, parseFloat(v));
+    }
+  });
+}
+function applyEq(data){
+  applyEqGains(data.gains || EQ_PRESETS.flat);
+  if(hpfSlider){
+    hpfSlider.value = data.hpf ?? 20;
+    audio.setHighpass(parseFloat(hpfSlider.value));
+  }
+  if(lpfSlider){
+    lpfSlider.value = data.lpf ?? 20000;
+    audio.setLowpass(parseFloat(lpfSlider.value));
+  }
+  if(eqOverlayToggle){
+    eqOverlayToggle.checked = data.overlay ?? false;
+  }
+}
+function saveEq(){
+  const data = {
+    gains: eqSliders.map(s=> parseFloat(s.value)),
+    hpf: parseFloat(hpfSlider?.value || 20),
+    lpf: parseFloat(lpfSlider?.value || 20000),
+    overlay: eqOverlayToggle?.checked || false
+  };
+  localStorage.setItem('eqSettings', JSON.stringify(data));
+}
+function loadEq(){
+  const stored = localStorage.getItem('eqSettings');
+  const data = stored ? JSON.parse(stored) : { gains: EQ_PRESETS.flat, hpf:20, lpf:20000, overlay:false };
+  audio._ensureCtx?.().then(()=> applyEq(data));
+}
+eqSliders.forEach((sl,i)=>{
+  sl.addEventListener('input', ()=>{ audio.setEqGain(i, parseFloat(sl.value)); saveEq(); });
+});
+hpfSlider?.addEventListener('input', ()=>{ audio.setHighpass(parseFloat(hpfSlider.value)); saveEq(); });
+lpfSlider?.addEventListener('input', ()=>{ audio.setLowpass(parseFloat(lpfSlider.value)); saveEq(); });
+eqOverlayToggle?.addEventListener('change', saveEq);
+eqPresetBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const preset = btn.dataset.preset;
+    const vals = EQ_PRESETS[preset];
+    if(vals){ applyEqGains(vals); saveEq(); }
+  });
+});
+loadEq();
 
 btnSettings.addEventListener('click', ()=> {
   settingsPanel.hidden = !settingsPanel.hidden;
@@ -438,6 +500,24 @@ function drawMiniSpectrum(freqData){
     const y = h - mag*h;
     specCtx.globalAlpha=0.95; specCtx.fillStyle='#cfe8ff';
     specCtx.fillRect(x,y,barW,h-y);
+  }
+  if(eqOverlayToggle?.checked){
+    const gains = audio.getEqSettings();
+    const freqs = audio.getEqFreqs();
+    const sr = audio.ctx?.sampleRate || 44100;
+    const ny = sr/2;
+    const points = gains.map((g,i)=>{
+      const f = freqs[i];
+      const x = Math.log2(f/20) / Math.log2(ny/20) * w;
+      const y = h - ((g + 12) / 24) * h;
+      return {x,y};
+    });
+    specCtx.globalAlpha = 1.0;
+    specCtx.strokeStyle = '#ffea00';
+    specCtx.lineWidth = 2;
+    specCtx.beginPath();
+    points.forEach((p,i)=>{ if(i===0) specCtx.moveTo(p.x,p.y); else specCtx.lineTo(p.x,p.y); });
+    specCtx.stroke();
   }
 }
 function drawMiniWave(timeData){
