@@ -336,6 +336,10 @@ function renderPlaylist(){
         await savePlaylistToDB();
       }
     });
+    li.addEventListener('dblclick', async (e)=>{
+      if (e.target.closest('button')) return;
+      await playIndex(idx);
+    });
     plList.appendChild(li);
   });
 }
