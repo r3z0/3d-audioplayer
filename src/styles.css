@@ -158,31 +158,6 @@
   .eq-presets { display:flex; gap:6px; }
   .eq-overlay, .eq-toggle { font-size:11px; display:flex; align-items:center; gap:4px; }
 
-  /* Playlist styles */
-  #pl-list li .pl-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  #pl-list li .pl-duration,
-  #pl-list li .pl-size {
-    font-size: 11px;
-    color: var(--muted);
-    text-align: right;
-  }
-  #pl-list li .pl-duration { width: 48px; }
-  #pl-list li .pl-size { width: 60px; }
-
-  .pl-cover {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    border-radius: 4px;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-
   #coverModal {
     position: fixed;
     inset: 0;

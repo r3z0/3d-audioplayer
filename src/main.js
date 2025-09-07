@@ -160,29 +160,24 @@ function updateLEDs(dt){
 }
 
 // ---------- Playlist panel (IndexedDB persistence) ----------
-const playlistPanel = document.createElement('div');
-playlistPanel.id = 'playlistPanel';
-playlistPanel.style.cssText = `
-  position:fixed; right:12px; top:12px; z-index:1000;
-  width: 260px; max-height: 46vh; overflow:auto;
-  background: rgba(13,19,33,0.7); backdrop-filter: blur(6px);
-  color:#e8f0ff; font:12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
-  border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,0.35); padding:10px;
-`;
-playlistPanel.innerHTML = `
-  <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
-    <strong style="flex:1;">Playlist</strong>
-    <button id="pl-prev" title="Prev">⏮</button>
-    <button id="pl-next" title="Next">⏭</button>
-    <button id="pl-save" title="Save playlist">💾</button>
-    <button id="pl-load" title="Load playlist">📂</button>
+const playlistTpl = document.createElement('template');
+playlistTpl.innerHTML = `
+  <div id="playlistPanel" class="fixed right-3 top-3 z-[1000] w-64 max-h-[46vh] overflow-auto bg-slate-900/70 backdrop-blur text-blue-50 text-xs font-sans rounded-xl shadow-xl p-2.5">
+    <div class="flex gap-1.5 items-center mb-1.5">
+      <strong class="flex-1">Playlist</strong>
+      <button id="pl-prev" title="Prev">⏮</button>
+      <button id="pl-next" title="Next">⏭</button>
+      <button id="pl-save" title="Save playlist">💾</button>
+      <button id="pl-load" title="Load playlist">📂</button>
+    </div>
+    <div class="flex gap-1.5 mb-1.5">
+      <input id="pl-file" type="file" accept="audio/*" multiple class="flex-1" />
+    </div>
+    <ul id="pl-list" class="list-none p-0 m-0 grid gap-1.5"></ul>
+    <div class="mt-1.5 opacity-80 text-[11px]">Tip: drag items to reorder • N/P keys</div>
   </div>
-  <div style="display:flex; gap:6px; margin-bottom:6px;">
-    <input id="pl-file" type="file" accept="audio/*" multiple style="flex:1;">
-  </div>
-  <ul id="pl-list" style="list-style:none; padding:0; margin:0; display:grid; gap:6px;"></ul>
-  <div style="margin-top:6px; opacity:.8;">Tip: drag items to reorder • N/P keys</div>
 `;
+const playlistPanel = playlistTpl.content.firstElementChild;
 document.body.appendChild(playlistPanel);
 
 const hud = document.getElementById('appControls');
@@ -221,7 +216,13 @@ let currentIndex = -1;
 const FADE_TIME = 0.5;
 
 async function makePlaylistItem(file){
-  const it = { name: file.name, file, id: crypto.randomUUID?.() || String(Math.random()) };
+  const it = {
+    name: file.name,
+    title: file.name,
+    artist: '',
+    file,
+    id: crypto.randomUUID?.() || String(Math.random())
+  };
   try {
     const tag = await new Promise((resolve, reject) => {
       jsmediatags.read(file, {
@@ -229,6 +230,8 @@ async function makePlaylistItem(file){
         onError: reject
       });
     });
+    it.title = tag?.tags?.title || it.name;
+    it.artist = tag?.tags?.artist || '';
     const pic = tag?.tags?.picture;
     if (pic) {
       const blob = new Blob([new Uint8Array(pic.data)], { type: pic.format });
@@ -284,6 +287,8 @@ async function loadPlaylistFromDB(){
   db.close();
   playlist = (items || []).map(r => ({
     name: r.name,
+    title: r.name,
+    artist: '',
     id: r.id,
     file: r.blob // Blob (or File)
   }));
@@ -298,15 +303,112 @@ function formatTime(sec){
   const s = Math.floor(sec%60).toString().padStart(2,'0');
   return `${m}:${s}`;
 }
-function formatBytes(bytes){
-  if (bytes >= 1<<20) return `${(bytes/(1<<20)).toFixed(1)} MB`;
-  if (bytes >= 1<<10) return `${(bytes/(1<<10)).toFixed(1)} KB`;
-  return `${bytes} B`;
+function buildPlaylistItem(it, idx){
+  const li = document.createElement('li');
+  li.draggable = true;
+  li.dataset.idx = idx.toString();
+  li.className = 'flex items-center gap-2 p-1.5 rounded-lg';
+  if (idx === currentIndex) li.classList.add('bg-indigo-500/30');
+  else li.classList.add('bg-white/5', 'hover:bg-white/10');
+
+  const durStr = typeof it.duration === 'number' ? formatTime(it.duration) : '--:--';
+
+  if (it.coverUrl) {
+    const img = document.createElement('img');
+    img.src = it.coverUrl;
+    img.alt = '';
+    img.className = 'w-10 h-10 object-cover rounded cursor-pointer flex-shrink-0';
+    img.addEventListener('click', e => { e.stopPropagation(); showCoverModal(it.coverUrl); });
+    li.appendChild(img);
+  }
+
+  const info = document.createElement('div');
+  info.className = 'flex-1 overflow-hidden';
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'text-sm font-medium truncate';
+  titleDiv.textContent = it.title || it.name;
+  const artistDiv = document.createElement('div');
+  artistDiv.className = 'text-xs text-slate-300 truncate';
+  artistDiv.textContent = it.artist || '';
+  info.append(titleDiv, artistDiv);
+  li.appendChild(info);
+
+  const durDiv = document.createElement('div');
+  durDiv.className = 'text-xs text-slate-300 tabular-nums';
+  durDiv.textContent = durStr;
+  li.appendChild(durDiv);
+
+  const actions = document.createElement('div');
+  actions.className = 'flex gap-1 ml-2';
+  const btns = [
+    { act: 'play', label: '▶', title: 'Play' },
+    { act: 'up', label: '↑', title: 'Move up' },
+    { act: 'down', label: '↓', title: 'Move down' },
+    { act: 'del', label: '✕', title: 'Remove' }
+  ];
+  btns.forEach(b => {
+    const btn = document.createElement('button');
+    btn.dataset.act = b.act;
+    btn.title = b.title;
+    btn.textContent = b.label;
+    btn.className = 'px-1 text-sm hover:text-white';
+    actions.appendChild(btn);
+  });
+  li.appendChild(actions);
+
+  li.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', idx.toString()); });
+  li.addEventListener('dragover', e => { e.preventDefault(); });
+  li.addEventListener('drop', async e => {
+    e.preventDefault();
+    const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    const to = idx;
+    if (from === to) return;
+    const item = playlist.splice(from, 1)[0];
+    playlist.splice(to, 0, item);
+    if (currentIndex === from) currentIndex = to;
+    else if (from < currentIndex && to >= currentIndex) currentIndex--;
+    else if (from > currentIndex && to <= currentIndex) currentIndex++;
+    renderPlaylist();
+    await savePlaylistToDB();
+  });
+  li.addEventListener('click', async e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const act = btn.dataset.act;
+    if (act === 'play') await playIndex(idx);
+    if (act === 'del') {
+      playlist.splice(idx, 1);
+      if (idx === currentIndex) { currentIndex = -1; }
+      else if (idx < currentIndex) { currentIndex--; }
+      renderPlaylist();
+      await savePlaylistToDB();
+    }
+    if (act === 'up' && idx > 0) {
+      [playlist[idx - 1], playlist[idx]] = [playlist[idx], playlist[idx - 1]];
+      if (currentIndex === idx) currentIndex = idx - 1;
+      else if (currentIndex === idx - 1) currentIndex = idx;
+      renderPlaylist();
+      await savePlaylistToDB();
+    }
+    if (act === 'down' && idx < playlist.length - 1) {
+      [playlist[idx + 1], playlist[idx]] = [playlist[idx], playlist[idx + 1]];
+      if (currentIndex === idx) currentIndex = idx + 1;
+      else if (currentIndex === idx + 1) currentIndex = idx;
+      renderPlaylist();
+      await savePlaylistToDB();
+    }
+  });
+  li.addEventListener('dblclick', async e => {
+    if (e.target.closest('button')) return;
+    await playIndex(idx);
+  });
+
+  return li;
 }
 
 function renderPlaylist(){
   plList.innerHTML = '';
-  playlist.forEach((it, idx)=>{
+  playlist.forEach((it, idx) => {
     if (it.file && typeof it.duration !== 'number') {
       try {
         const audioEl = new Audio();
@@ -325,82 +427,7 @@ function renderPlaylist(){
         console.warn('duration load failed', err);
       }
     }
-    const li = document.createElement('li');
-    li.draggable = true;
-    li.dataset.idx = idx.toString();
-    li.style.cssText = `
-      display:flex; gap:6px; align-items:center; padding:6px; border-radius:8px;
-      background:${idx===currentIndex ? 'rgba(90,130,255,0.22)' : 'rgba(255,255,255,0.06)'};
-    `;
-    const durStr = typeof it.duration === 'number' ? formatTime(it.duration) : '--:--';
-    const sizeStr = it.file ? formatBytes(it.file.size) : '';
-    li.innerHTML = `
-      ${it.coverUrl ? `<img class="pl-cover" src="${it.coverUrl}" alt="cover"/>` : ''}
-      <div class="pl-name">${it.name}</div>
-      <div class="pl-duration">${durStr}</div>
-      <div class="pl-size">${sizeStr}</div>
-      <button data-act="play" title="Play">▶</button>
-      <button data-act="up" title="Move up">↑</button>
-      <button data-act="down" title="Move down">↓</button>
-      <button data-act="del" title="Remove">✕</button>
-    `;
-    if (it.coverUrl) {
-      const img = li.querySelector('.pl-cover');
-      img.className = 'pl-cover';
-      img.src = it.coverUrl;
-      img.alt = '';
-      img.addEventListener('click', e => {
-        e.stopPropagation();
-        showCoverModal(it.coverUrl);
-      });
-      li.prepend(img);
-    }
-    li.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', idx.toString()); });
-    li.addEventListener('dragover', e => { e.preventDefault(); });
-    li.addEventListener('drop', async e => {
-      e.preventDefault();
-      const from = parseInt(e.dataTransfer.getData('text/plain'),10);
-      const to = idx;
-      if (from===to) return;
-      const item = playlist.splice(from,1)[0];
-      playlist.splice(to,0,item);
-      if (currentIndex === from) currentIndex = to;
-      else if (from < currentIndex && to >= currentIndex) currentIndex--;
-      else if (from > currentIndex && to <= currentIndex) currentIndex++;
-      renderPlaylist();
-      await savePlaylistToDB();
-    });
-    li.addEventListener('click', async (e)=>{
-      const btn = e.target.closest('button'); if (!btn) return;
-      const act = btn.dataset.act;
-      if (act==='play'){ await playIndex(idx); }
-      if (act==='del'){
-        playlist.splice(idx,1);
-        if (idx === currentIndex) { currentIndex = -1; }
-        else if (idx < currentIndex) { currentIndex--; }
-        renderPlaylist();
-        await savePlaylistToDB();
-      }
-      if (act==='up' && idx>0){
-        [playlist[idx-1], playlist[idx]] = [playlist[idx], playlist[idx-1]];
-        if (currentIndex===idx) currentIndex=idx-1;
-        else if (currentIndex===idx-1) currentIndex=idx;
-        renderPlaylist();
-        await savePlaylistToDB();
-      }
-      if (act==='down' && idx<playlist.length-1){
-        [playlist[idx+1], playlist[idx]] = [playlist[idx], playlist[idx+1]];
-        if (currentIndex===idx) currentIndex=idx+1;
-        else if (currentIndex===idx+1) currentIndex=idx;
-        renderPlaylist();
-        await savePlaylistToDB();
-      }
-    });
-    li.addEventListener('dblclick', async (e)=>{
-      if (e.target.closest('button')) return;
-      await playIndex(idx);
-    });
-    plList.appendChild(li);
+    plList.appendChild(buildPlaylistItem(it, idx));
   });
 }
 
