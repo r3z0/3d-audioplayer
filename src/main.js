@@ -154,8 +154,11 @@ function updateLEDs(dt){
   for (const k in ledTimers) ledTimers[k] = Math.max(0, ledTimers[k] - dt);
   for (const k in ledRefs) {
     const el = ledRefs[k];
-    el.classList.toggle('on', ledTimers[k] > 0);
-    el.classList.toggle('off', !(ledTimers[k] > 0));
+    const on = ledTimers[k] > 0;
+    el.classList.toggle('bg-[#6be3ff]', on);
+    el.classList.toggle('text-[#00121f]', on);
+    el.classList.toggle('border-[#89f0ff]', on);
+    el.classList.toggle('opacity-55', !on);
   }
 }
 
@@ -167,10 +170,10 @@ playlistTpl.innerHTML = `
        style="position:absolute; right:12px; z-index:1200;">
     <div class="flex gap-1.5 items-center mb-1.5">
       <strong class="flex-1">Playlist</strong>
-      <button id="pl-prev" title="Prev">⏮</button>
-      <button id="pl-next" title="Next">⏭</button>
-      <button id="pl-save" title="Save playlist">💾</button>
-      <button id="pl-load" title="Load playlist">📂</button>
+      <button id="pl-prev" title="Prev" class="hover:bg-[#22365d]">⏮</button>
+      <button id="pl-next" title="Next" class="hover:bg-[#22365d]">⏭</button>
+      <button id="pl-save" title="Save playlist" class="hover:bg-[#22365d]">💾</button>
+      <button id="pl-load" title="Load playlist" class="hover:bg-[#22365d]">📂</button>
     </div>
     <div class="flex gap-1.5 mb-1.5">
       <input id="pl-file" type="file" accept="audio/*" multiple class="flex-1" />
@@ -1018,17 +1021,17 @@ window.addEventListener('keydown', (e)=>{
 });
 
 // Drag & drop → fill playlist
-function showDrop(e){ 
+function showDrop(e){
   e.preventDefault();
-  e.stopPropagation(); 
-  if(dropzone) dropzone.style.display='grid'; 
-  console.log('show drop zone', dropzone); 
+  e.stopPropagation();
+  if(dropzone) dropzone.classList.remove('hidden');
+  console.log('show drop zone', dropzone);
 }
 
 function hideDrop(e){
   e?.preventDefault?.();
   e?.stopPropagation?.();
-  if(dropzone) dropzone.style.display='none';
+  if(dropzone) dropzone.classList.add('hidden');
   console.log('hide drop zone', dropzone);
 }
 
@@ -1052,11 +1055,11 @@ window.addEventListener('drop', async e=>{
   await savePlaylistToDB();
 });
 
-function setDropText(text){ 
-  if(!dropzone) return; 
+function setDropText(text){
+  if(!dropzone) return;
   console.log('set drop text', text);
-  dropzone.style.display='grid'; 
-  dropzone.innerHTML = `<div>${text}</div>`; 
+  dropzone.classList.remove('hidden');
+  dropzone.innerHTML = `<div>${text}</div>`;
 }
 
 // ---------- Resize ----------
