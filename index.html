@@ -9,6 +9,13 @@
 <body class="bg-deep-bg text-deep-text dark:bg-dark-bg dark:text-dark-text">
   <div id="app"></div>
 
+  <template id="eqSliderTemplate">
+    <div class="flex flex-col items-center text-xs">
+      <input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" />
+      <span></span>
+    </div>
+  </template>
+
   <!-- Top HUD -->
     <div id="appControls" class="fixed left-3 right-3 top-3 z-[1000] grid gap-1.5 p-2.5 bg-deep-panel dark:bg-dark-panel backdrop-blur rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.35)]">
     <div class="flex flex-wrap items-center gap-2">
@@ -54,18 +61,7 @@
 
     <!-- Equalizer Panel -->
     <div id="eqPanel" class="fixed left-1/2 bottom-3 -translate-x-1/2 z-[1001] flex flex-col items-center gap-2 bg-deep-panel dark:bg-dark-panel backdrop-blur rounded-xl px-3 py-2.5 shadow-[0_6px_24px_rgba(0,0,0,0.35)]">
-      <div id="eqSliders" class="flex gap-1.5 items-end h-[100px]">
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
-      </div>
+      <div id="eqSliders" class="flex gap-1.5 items-end h-[100px]"></div>
       <div class="flex gap-2.5 items-center text-[11px]">
         <div class="flex items-center gap-1">
           <label>HPF <input id="hpfSlider" type="range" min="20" max="1000" step="1" value="20" class="cursor-pointer" /></label>
@@ -126,18 +122,7 @@
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2" id="eqRow">
       <label>Equalizer</label>
-      <div id="eqSliders" class="flex gap-1.5 items-end h-[100px]">
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
-      </div>
+      <div id="eqSliders" class="flex gap-1.5 items-end h-[100px]"></div>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2" id="eqPresetRow">
       <label>Presets</label>
