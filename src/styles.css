@@ -116,13 +116,14 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
   box-shadow: 0 6px 24px rgba(0,0,0,0.35);
   padding: 10px 12px;
 }
+#beatPanel { left: auto; right: 12px; }
 .panel-title { font-weight: 700; margin-bottom: 8px; }
 .panel-row {
   display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
   margin: 8px 0;
 }
 .panel-row input[type="range"] { width: 160px; }
-.panel-footer { display: flex; justify-content: flex-end; }
+.panel-footer { display: flex; justify-content: flex-end; gap: 6px; }
 
 
 /* Equalizer panel */
@@ -171,6 +172,7 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
   height: 40px;
   object-fit: cover;
   border-radius: 4px;
+  flex-shrink: 0;
   cursor: pointer;
 }
 
@@ -178,6 +180,7 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
   position: fixed;
   inset: 0;
   display: none;
+
   justify-content: center;
   align-items: center;
   background: rgba(0,0,0,0.8);
