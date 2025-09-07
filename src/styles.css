@@ -15,15 +15,6 @@
 }
 
 @layer components {
-  button, input[type="file"]::-webkit-file-upload-button {
-    background: #1a2b4a;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  input[type="range"] { cursor: pointer; }
-
   #coverModal {
     position: fixed;
     inset: 0;
