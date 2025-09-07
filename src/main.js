@@ -156,6 +156,22 @@ playlistPanel.innerHTML = `
 `;
 document.body.appendChild(playlistPanel);
 
+const hud = document.getElementById('appControls');
+const btnPlaylist = document.getElementById('btnPlaylist');
+
+function positionPlaylist() {
+  const rect = hud.getBoundingClientRect();
+  playlistPanel.style.top = `${rect.bottom + 12}px`;
+}
+
+positionPlaylist();
+window.addEventListener('resize', positionPlaylist);
+
+btnPlaylist?.addEventListener('click', () => {
+  playlistPanel.hidden = !playlistPanel.hidden;
+  if (!playlistPanel.hidden) positionPlaylist();
+});
+
 const plInput = playlistPanel.querySelector('#pl-file');
 const plList  = playlistPanel.querySelector('#pl-list');
 const plPrev  = playlistPanel.querySelector('#pl-prev');
