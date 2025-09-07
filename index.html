@@ -20,7 +20,9 @@
       <span id="timeRemain">-0:00</span>
       <label class="vol">
         🔊
-        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" />
+        <canvas id="vuMeter" width="10" height="40"></canvas>
+        <canvas id="volumeKnob" width="50" height="50"></canvas>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" hidden />
         <span id="volPct">80%</span>
       </label>
       <button id="btnFullscreen" title="Fullscreen">⛶</button>

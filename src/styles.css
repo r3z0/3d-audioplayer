@@ -63,6 +63,19 @@ button, input[type="file"]::-webkit-file-upload-button {
 button:hover { background: #22365d; }
 input[type="range"] { cursor: pointer; }
 label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+#vuMeter {
+  width: 10px;
+  height: 40px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+#volumeKnob {
+  width: 50px;
+  height: 50px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+  cursor: pointer;
+}
 
 .dropzone {
   position: fixed; inset: 0; z-index: 1200;
