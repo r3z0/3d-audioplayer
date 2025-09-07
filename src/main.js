@@ -554,6 +554,8 @@ const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
 const hpfSlider = document.getElementById('hpfSlider');
 const lpfSlider = document.getElementById('lpfSlider');
 const eqOverlayToggle = document.getElementById('eqOverlayToggle');
+const eqAudioToggle = document.getElementById('eqAudioToggle');
+const eqLedToggle = document.getElementById('eqLedToggle');
 
 const EQ_PRESETS = {
   flat: new Array(10).fill(0),
@@ -615,6 +617,11 @@ eqPresetBtns.forEach(btn=>{
   });
 });
 loadEq();
+
+eqAudioToggle?.addEventListener('change', ()=> audio.setEqAudioEnabled(eqAudioToggle.checked));
+eqLedToggle?.addEventListener('change', ()=> audio.setEqLedEnabled(eqLedToggle.checked));
+audio.setEqAudioEnabled(eqAudioToggle?.checked ?? true);
+audio.setEqLedEnabled(eqLedToggle?.checked ?? true);
 
 function syncBeatInputs(){
   const r = settings.beatRanges;

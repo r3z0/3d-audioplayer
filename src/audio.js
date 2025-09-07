@@ -24,6 +24,9 @@ export class AudioReactive {
     this.lpf = null;
     this.filters = [];
     this.eqFreqs = [];
+    this.rawAnalyser = null;
+    this.eqAudioEnabled = true;
+    this.eqLedEnabled = true;
   }
 
   async _ensureCtx() {
@@ -34,6 +37,9 @@ export class AudioReactive {
       this.analyser = ctx.createAnalyser();
       this.analyser.fftSize = this.fftSize;
       this.analyser.smoothingTimeConstant = 0.8;
+      this.rawAnalyser = ctx.createAnalyser();
+      this.rawAnalyser.fftSize = this.fftSize;
+      this.rawAnalyser.smoothingTimeConstant = 0.8;
       this._timeData = new Float32Array(this.analyser.fftSize);
       this._spectrum = new Uint8Array(this.analyser.frequencyBinCount);
       this.gain.gain.value = 0.8;
@@ -60,14 +66,31 @@ export class AudioReactive {
         bi.gain.value = 0;
         return bi;
       });
-      // chain filters: hpf -> filters -> lpf -> analyser -> gain -> destination
-      let prev = this.hpf;
-      this.filters.forEach(f => { prev.connect(f); prev = f; });
-      prev.connect(this.lpf);
+      // connect: hpf -> rawAnalyser -> filters (optional) -> lpf -> analyser -> gain -> destination
+      this.hpf.connect(this.rawAnalyser);
+      this.setEqAudioEnabled(this.eqAudioEnabled);
       this.lpf.connect(this.analyser);
       this.analyser.connect(this.gain);
       this.gain.connect(ctx.destination);
     }
+  }
+
+  setEqAudioEnabled(enabled) {
+    this.eqAudioEnabled = !!enabled;
+    if (!this.ctx || !this.rawAnalyser || !this.lpf) return;
+    try { this.rawAnalyser.disconnect(); } catch {}
+    this.filters.forEach(f => { try { f.disconnect(); } catch {} });
+    if (this.eqAudioEnabled) {
+      let prev = this.rawAnalyser;
+      this.filters.forEach(f => { prev.connect(f); prev = f; });
+      prev.connect(this.lpf);
+    } else {
+      this.rawAnalyser.connect(this.lpf);
+    }
+  }
+
+  setEqLedEnabled(enabled) {
+    this.eqLedEnabled = !!enabled;
   }
 
   async useFile(file, onProgress) {
@@ -183,19 +206,21 @@ export class AudioReactive {
   getEqFreqs(){ return this.eqFreqs; }
 
   getSpectrumArray() {
-    if (!this.analyser) return new Uint8Array(0);
-    this.analyser.getByteFrequencyData(this._spectrum);
+    const an = this.eqLedEnabled ? this.analyser : this.rawAnalyser;
+    if (!an) return new Uint8Array(0);
+    an.getByteFrequencyData(this._spectrum);
     return this._spectrum;
   }
 
   getTimeDomainArray() {
-    if (!this.analyser) return new Float32Array(0);
-    this.analyser.getFloatTimeDomainData(this._timeData);
+    const an = this.eqLedEnabled ? this.analyser : this.rawAnalyser;
+    if (!an) return new Float32Array(0);
+    an.getFloatTimeDomainData(this._timeData);
     return this._timeData;
   }
 
   getRangeVolume(fromHz, toHz) {
-    if (!this.analyser || !this.ctx) return 0;
+    if (!this.ctx) return 0;
     const spec = this.getSpectrumArray();
     const nyquist = this.ctx.sampleRate / 2;
     const len = spec.length;
@@ -224,8 +249,10 @@ export class AudioReactive {
   }
 
   getOnsets() {
-    if (!this.analyser) return { kick:false, snare:false, hat:false, any:false };
-    this.analyser.getFloatTimeDomainData(this._timeData);
+    const an = this.eqLedEnabled ? this.analyser : this.rawAnalyser;
+    if (!an) return { kick:false, snare:false, hat:false, any:false };
+    an.getFloatTimeDomainData(this._timeData);
+    an.getByteFrequencyData(this._spectrum);
     const spec = this._spectrum;
     const n = this._timeData.length;
     let rms=0; for (let i=0;i<n;i++){ const v=this._timeData[i]; rms += v*v; }
