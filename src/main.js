@@ -106,7 +106,11 @@ const scrubber = document.getElementById('scrubber');
 const timeNow = document.getElementById('timeNow');
 const timeRemain = document.getElementById('timeRemain');
 const volume = document.getElementById('volume');
+const volumeKnob = document.getElementById('volumeKnob');
+const vuMeter = document.getElementById('vuMeter');
 const volPct = document.getElementById('volPct');
+const knobCtx = volumeKnob.getContext?.('2d');
+const vuCtx = vuMeter.getContext?.('2d');
 const trackTitle = document.getElementById('trackTitle');
 const trackStatus = document.getElementById('trackStatus');
 const miniSpec = document.getElementById('miniSpec');
@@ -158,6 +162,8 @@ document.body.appendChild(playlistPanel);
 
 const hud = document.getElementById('appControls');
 const btnPlaylist = document.getElementById('btnPlaylist');
+
+drawVolumeKnob(parseFloat(volume.value||'0'));
 
 function positionPlaylist() {
   const rect = hud.getBoundingClientRect();
@@ -359,6 +365,7 @@ const beatToggle = document.getElementById('beatToggle');
 const clearBeatsBtn = document.getElementById('clearBeats');
 const eqSliders = Array.from(document.querySelectorAll('.eq-slider'));
 const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
+
 const hpfSlider = document.getElementById('hpfSlider');
 const lpfSlider = document.getElementById('lpfSlider');
 const eqOverlayToggle = document.getElementById('eqOverlayToggle');
@@ -369,6 +376,7 @@ const EQ_PRESETS = {
   pop:  [-1,0,1,3,5,3,1,0,-1,-2]
 };
 
+
 function applyEqGains(values){
   values.forEach((v,i)=>{
     if(eqSliders[i]){
@@ -377,6 +385,7 @@ function applyEqGains(values){
     }
   });
 }
+
 function applyEq(data){
   applyEqGains(data.gains || EQ_PRESETS.flat);
   if(hpfSlider){
@@ -408,9 +417,11 @@ function loadEq(){
 eqSliders.forEach((sl,i)=>{
   sl.addEventListener('input', ()=>{ audio.setEqGain(i, parseFloat(sl.value)); saveEq(); });
 });
+
 hpfSlider?.addEventListener('input', ()=>{ audio.setHighpass(parseFloat(hpfSlider.value)); saveEq(); });
 lpfSlider?.addEventListener('input', ()=>{ audio.setLowpass(parseFloat(lpfSlider.value)); saveEq(); });
 eqOverlayToggle?.addEventListener('change', saveEq);
+
 eqPresetBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
     const preset = btn.dataset.preset;
@@ -538,6 +549,36 @@ function drawMiniWave(timeData){
   waveCtx.stroke();
 }
 
+// Volume knob + VU meter
+function drawVolumeKnob(val){
+  if (!knobCtx) return;
+  const { w, h } = fitCanvasToDisplay(volumeKnob);
+  const r = Math.min(w, h) / 2 - 2;
+  knobCtx.clearRect(0,0,w,h);
+  knobCtx.fillStyle = '#1a2b4a';
+  knobCtx.beginPath();
+  knobCtx.arc(w/2, h/2, r, 0, Math.PI*2);
+  knobCtx.fill();
+  const ang = (val * 270 - 135) * Math.PI/180;
+  const x = w/2 + Math.cos(ang)*(r-6);
+  const y = h/2 + Math.sin(ang)*(r-6);
+  knobCtx.strokeStyle = '#ffffff';
+  knobCtx.lineWidth = 3;
+  knobCtx.beginPath();
+  knobCtx.moveTo(w/2, h/2);
+  knobCtx.lineTo(x, y);
+  knobCtx.stroke();
+}
+
+function updateVUMeter(level){
+  if (!vuCtx) return;
+  const { w, h } = fitCanvasToDisplay(vuMeter);
+  vuCtx.clearRect(0,0,w,h);
+  vuCtx.fillStyle = '#8fb3ff';
+  const barH = h * Math.max(0, Math.min(1, level));
+  vuCtx.fillRect(0, h - barH, w, barH);
+}
+
 // ---------- UI events ----------
 micBtn.addEventListener('click', async () => {
   try{
@@ -562,15 +603,36 @@ fileInput.addEventListener('change', async (e)=>{
 playBtn.addEventListener('click', async ()=>{ try{ await audio.toggle(); updateHUDState(); } catch{} });
 scrubber.addEventListener('input', ()=>{ if (audio.isSeekable()){ const t=parseFloat(scrubber.value||'0'); audio.seek(Number.isFinite(t)?t:0); }});
 volume.addEventListener('input', ()=>{
-  const v=parseFloat(volume.value); audio.setVolume(v); volPct.textContent=`${Math.round((audio.getVolume()||0)*100)}%`;
+  const v=parseFloat(volume.value);
+  audio.setVolume(v);
+  volPct.textContent=`${Math.round((audio.getVolume()||0)*100)}%`;
+  drawVolumeKnob(v);
 });
+
+let knobDragging = false;
+function setKnobFromEvent(e){
+  const rect = volumeKnob.getBoundingClientRect();
+  const x = e.clientX - rect.left - rect.width/2;
+  const y = e.clientY - rect.top - rect.height/2;
+  let deg = Math.atan2(y, x) * 180/Math.PI + 180 - 135;
+  deg = Math.max(0, Math.min(270, deg));
+  const val = deg / 270;
+  volume.value = val.toFixed(2);
+  volume.dispatchEvent(new Event('input'));
+}
+volumeKnob.addEventListener('pointerdown', e=>{ knobDragging=true; volumeKnob.setPointerCapture(e.pointerId); setKnobFromEvent(e); });
+volumeKnob.addEventListener('pointermove', e=>{ if(knobDragging) setKnobFromEvent(e); });
+volumeKnob.addEventListener('pointerup', e=>{ knobDragging=false; volumeKnob.releasePointerCapture(e.pointerId); });
 window.addEventListener('keydown', (e)=>{
   const k = e.key.toLowerCase();
   if (k==='arrowup' || k==='arrowdown'){
     e.preventDefault();
     const delta = k==='arrowup' ? 0.05 : -0.05;
     const v = Math.max(0, Math.min(1, (audio.getVolume()||0)+delta));
-    audio.setVolume(v); volume.value=v.toFixed(2); volPct.textContent=`${Math.round(v*100)}%`;
+    audio.setVolume(v);
+    volume.value=v.toFixed(2);
+    volPct.textContent=`${Math.round(v*100)}%`;
+    drawVolumeKnob(v);
   }
   if (k==='n') { plNext.click(); }
   if (k==='p') { plPrev.click(); }
@@ -676,6 +738,8 @@ function tick(){
   if (on.snare) bumpLED('snare');
   if (on.hat)   bumpLED('hat');
   updateLEDs(dt);
+  const level = audio.getBands ? audio.getBands().overall : 0;
+  updateVUMeter(level);
   drawMiniSpectrum(spectrum);
   drawMiniWave(timeData);
   updateBeatTimeline(on);
