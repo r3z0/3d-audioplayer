@@ -41,7 +41,7 @@ export class AudioReactive {
         const bi = ctx.createBiquadFilter();
         bi.type = 'peaking';
         bi.frequency.value = f;
-        bi.Q = 1.0;
+        bi.Q.value = 1.0;
         bi.gain.value = 0;
         return bi;
       });
