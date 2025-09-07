@@ -86,24 +86,50 @@ export class AudioReactive {
       this.gain.connect(ctx.destination);
 
       // establish initial routing according to flags
-      this.setHpfAudioEnabled(this.hpfAudioEnabled);
-      this.setEqAudioEnabled(this.eqAudioEnabled);
-      this.setLpfAudioEnabled(this.lpfAudioEnabled);
+      this.rebuildRouting();
     }
+  }
+
+  rebuildRouting() {
+    if (!this.ctx) return;
+    const nodes = [
+      this.preHpfAnalyser,
+      this.hpf,
+      this.rawAnalyser,
+      ...this.filters,
+      this.preLpfAnalyser,
+      this.lpf,
+      this.analyser
+    ];
+    nodes.forEach(n => { try { n.disconnect(); } catch {} });
+
+    let prev = this.preHpfAnalyser;
+    if (this.hpfAudioEnabled) {
+      prev.connect(this.hpf);
+      prev = this.hpf;
+    }
+    prev.connect(this.rawAnalyser);
+    prev = this.rawAnalyser;
+
+    if (this.eqAudioEnabled) {
+      this.filters.forEach(f => { prev.connect(f); prev = f; });
+    }
+
+    prev.connect(this.preLpfAnalyser);
+    prev = this.preLpfAnalyser;
+
+    if (this.lpfAudioEnabled) {
+      prev.connect(this.lpf);
+      prev = this.lpf;
+    }
+
+    prev.connect(this.analyser);
+    this.analyser.connect(this.gain);
   }
 
   setEqAudioEnabled(enabled) {
     this.eqAudioEnabled = !!enabled;
-    if (!this.ctx || !this.rawAnalyser || !this.preLpfAnalyser) return;
-    try { this.rawAnalyser.disconnect(); } catch {}
-    this.filters.forEach(f => { try { f.disconnect(); } catch {} });
-    if (this.eqAudioEnabled) {
-      let prev = this.rawAnalyser;
-      this.filters.forEach(f => { prev.connect(f); prev = f; });
-      prev.connect(this.preLpfAnalyser);
-    } else {
-      this.rawAnalyser.connect(this.preLpfAnalyser);
-    }
+    this.rebuildRouting();
   }
 
   setEqLedEnabled(enabled) {
@@ -112,28 +138,12 @@ export class AudioReactive {
 
   setHpfAudioEnabled(enabled) {
     this.hpfAudioEnabled = !!enabled;
-    if (!this.ctx || !this.preHpfAnalyser || !this.rawAnalyser || !this.hpf) return;
-    try { this.preHpfAnalyser.disconnect(); } catch {}
-    try { this.hpf.disconnect(); } catch {}
-    if (this.hpfAudioEnabled) {
-      this.preHpfAnalyser.connect(this.hpf);
-      this.hpf.connect(this.rawAnalyser);
-    } else {
-      this.preHpfAnalyser.connect(this.rawAnalyser);
-    }
+    this.rebuildRouting();
   }
 
   setLpfAudioEnabled(enabled) {
     this.lpfAudioEnabled = !!enabled;
-    if (!this.ctx || !this.preLpfAnalyser || !this.analyser || !this.lpf) return;
-    try { this.preLpfAnalyser.disconnect(); } catch {}
-    try { this.lpf.disconnect(); } catch {}
-    if (this.lpfAudioEnabled) {
-      this.preLpfAnalyser.connect(this.lpf);
-      this.lpf.connect(this.analyser);
-    } else {
-      this.preLpfAnalyser.connect(this.analyser);
-    }
+    this.rebuildRouting();
   }
 
   setHpfLedEnabled(enabled) { this.hpfLedEnabled = !!enabled; }
