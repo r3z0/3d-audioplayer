@@ -526,9 +526,12 @@ function drawMiniSpectrum(freqData){
     specCtx.globalAlpha = 1.0;
     specCtx.strokeStyle = '#ffea00';
     specCtx.lineWidth = 2;
-    specCtx.beginPath();
-    points.forEach((p,i)=>{ if(i===0) specCtx.moveTo(p.x,p.y); else specCtx.lineTo(p.x,p.y); });
-    specCtx.stroke();
+    if(points.length){
+      specCtx.beginPath();
+      specCtx.moveTo(0, points[0].y);
+      points.forEach(p=> specCtx.lineTo(p.x, p.y));
+      specCtx.stroke();
+    }
   }
 }
 function drawMiniWave(timeData){
