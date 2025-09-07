@@ -116,6 +116,7 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
   box-shadow: 0 6px 24px rgba(0,0,0,0.35);
   padding: 10px 12px;
 }
+#beatPanel { left: auto; right: 12px; }
 .panel-title { font-weight: 700; margin-bottom: 8px; }
 .panel-row {
   display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;

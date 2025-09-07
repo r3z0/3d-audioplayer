@@ -194,6 +194,18 @@ export class AudioReactive {
     return this._timeData;
   }
 
+  getRangeVolume(fromHz, toHz) {
+    if (!this.analyser || !this.ctx) return 0;
+    const spec = this.getSpectrumArray();
+    const nyquist = this.ctx.sampleRate / 2;
+    const len = spec.length;
+    const start = Math.max(0, Math.floor((fromHz/nyquist) * len));
+    const end = Math.min(len, Math.ceil((toHz/nyquist) * len));
+    let sum = 0, count = 0;
+    for (let i = start; i < end; i++) { sum += spec[i]; count++; }
+    return count ? (sum / count) / 255 : 0;
+  }
+
   getBands() {
     const spec = this.getSpectrumArray();
     if (!spec.length) return { overall:0, bass:0, mid:0, treble:0 };

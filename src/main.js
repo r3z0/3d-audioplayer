@@ -120,6 +120,7 @@ const waveCtx  = miniWave.getContext('2d');
 const dropzone = document.getElementById('dropzone');
 const btnFS = document.getElementById('btnFullscreen');
 const btnSettings = document.getElementById('btnSettings');
+const btnBeatConfig = document.getElementById('btnBeatConfig');
 
 // LEDs
 const ledKick  = document.getElementById('ledKick');
@@ -351,6 +352,13 @@ const settings = {
   film: true,
   rgb: true,
   beatTimeline: false,
+  beatThresholds: { kick: 0.6, snare: 0.5, hat: 0.45 },
+  beatRanges: {
+    kick: [40, 200],
+    snare1: [120, 250],
+    snare2: [2000, 5000],
+    hat: [6000, 16000],
+  },
 };
 const settingsPanel = document.getElementById('settingsPanel');
 const themeSel = document.getElementById('themeSel');
@@ -363,6 +371,22 @@ const filmToggle = document.getElementById('filmToggle');
 const rgbToggle = document.getElementById('rgbToggle');
 const beatToggle = document.getElementById('beatToggle');
 const clearBeatsBtn = document.getElementById('clearBeats');
+const beatPanel = document.getElementById('beatPanel');
+const beatClose = document.getElementById('beatClose');
+const kickFrom = document.getElementById('kickFrom');
+const kickTo = document.getElementById('kickTo');
+const kickTh = document.getElementById('kickTh');
+const kickThVal = document.getElementById('kickThVal');
+const snareLowFrom = document.getElementById('snareLowFrom');
+const snareLowTo = document.getElementById('snareLowTo');
+const snareHighFrom = document.getElementById('snareHighFrom');
+const snareHighTo = document.getElementById('snareHighTo');
+const snareTh = document.getElementById('snareTh');
+const snareThVal = document.getElementById('snareThVal');
+const hatFrom = document.getElementById('hatFrom');
+const hatTo = document.getElementById('hatTo');
+const hatTh = document.getElementById('hatTh');
+const hatThVal = document.getElementById('hatThVal');
 const eqSliders = Array.from(document.querySelectorAll('.eq-slider'));
 const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
 
@@ -430,6 +454,40 @@ eqPresetBtns.forEach(btn=>{
   });
 });
 loadEq();
+
+function syncBeatInputs(){
+  const r = settings.beatRanges;
+  kickFrom.value = r.kick[0];
+  kickTo.value = r.kick[1];
+  snareLowFrom.value = r.snare1[0];
+  snareLowTo.value = r.snare1[1];
+  snareHighFrom.value = r.snare2[0];
+  snareHighTo.value = r.snare2[1];
+  hatFrom.value = r.hat[0];
+  hatTo.value = r.hat[1];
+  kickTh.value = settings.beatThresholds.kick; kickThVal.textContent = settings.beatThresholds.kick.toFixed(2);
+  snareTh.value = settings.beatThresholds.snare; snareThVal.textContent = settings.beatThresholds.snare.toFixed(2);
+  hatTh.value = settings.beatThresholds.hat; hatThVal.textContent = settings.beatThresholds.hat.toFixed(2);
+}
+syncBeatInputs();
+
+btnBeatConfig?.addEventListener('click', ()=> {
+  beatPanel.hidden = !beatPanel.hidden;
+  if (!beatPanel.hidden) syncBeatInputs();
+});
+beatClose?.addEventListener('click', ()=> { beatPanel.hidden = true; });
+
+kickFrom.addEventListener('change', ()=>{ settings.beatRanges.kick[0] = parseFloat(kickFrom.value)||0; });
+kickTo.addEventListener('change', ()=>{ settings.beatRanges.kick[1] = parseFloat(kickTo.value)||0; });
+kickTh.addEventListener('input', ()=>{ const v=parseFloat(kickTh.value)||0; settings.beatThresholds.kick=v; kickThVal.textContent=v.toFixed(2); });
+snareLowFrom.addEventListener('change', ()=>{ settings.beatRanges.snare1[0] = parseFloat(snareLowFrom.value)||0; });
+snareLowTo.addEventListener('change', ()=>{ settings.beatRanges.snare1[1] = parseFloat(snareLowTo.value)||0; });
+snareHighFrom.addEventListener('change', ()=>{ settings.beatRanges.snare2[0] = parseFloat(snareHighFrom.value)||0; });
+snareHighTo.addEventListener('change', ()=>{ settings.beatRanges.snare2[1] = parseFloat(snareHighTo.value)||0; });
+snareTh.addEventListener('input', ()=>{ const v=parseFloat(snareTh.value)||0; settings.beatThresholds.snare=v; snareThVal.textContent=v.toFixed(2); });
+hatFrom.addEventListener('change', ()=>{ settings.beatRanges.hat[0] = parseFloat(hatFrom.value)||0; });
+hatTo.addEventListener('change', ()=>{ settings.beatRanges.hat[1] = parseFloat(hatTo.value)||0; });
+hatTh.addEventListener('input', ()=>{ const v=parseFloat(hatTh.value)||0; settings.beatThresholds.hat=v; hatThVal.textContent=v.toFixed(2); });
 
 btnSettings.addEventListener('click', ()=> {
   settingsPanel.hidden = !settingsPanel.hidden;
@@ -699,7 +757,19 @@ let lastBeatAt = -10;
 function updateBeatTimeline(onsets){
   if (!settings.beatTimeline) return;
   const t = audio.getCurrentTime();
-  if (onsets.any && (t - lastBeatAt) > 0.12) { // refractory to avoid spamming
+  const r = settings.beatRanges;
+  const kickVol = audio.getRangeVolume(r.kick[0], r.kick[1]);
+  const snareVol = Math.max(
+    audio.getRangeVolume(r.snare1[0], r.snare1[1]),
+    audio.getRangeVolume(r.snare2[0], r.snare2[1])
+  );
+  const hatVol = audio.getRangeVolume(r.hat[0], r.hat[1]);
+  const th = settings.beatThresholds;
+  const hit =
+    (onsets.kick  && kickVol  >= th.kick) ||
+    (onsets.snare && snareVol >= th.snare) ||
+    (onsets.hat   && hatVol   >= th.hat);
+  if (hit && (t - lastBeatAt) > 0.12) {
     beatMarks.push(t);
     lastBeatAt = t;
   }
