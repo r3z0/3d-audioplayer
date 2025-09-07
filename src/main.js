@@ -357,6 +357,43 @@ const filmToggle = document.getElementById('filmToggle');
 const rgbToggle = document.getElementById('rgbToggle');
 const beatToggle = document.getElementById('beatToggle');
 const clearBeatsBtn = document.getElementById('clearBeats');
+const eqSliders = Array.from(document.querySelectorAll('.eq-slider'));
+const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
+
+const EQ_PRESETS = {
+  flat: new Array(10).fill(0),
+  rock: [4,3,2,1,0,0,1,2,3,4],
+  pop:  [-1,0,1,3,5,3,1,0,-1,-2]
+};
+
+function applyEq(values){
+  values.forEach((v,i)=>{
+    if(eqSliders[i]){
+      eqSliders[i].value = v;
+      audio.setEqGain(i, parseFloat(v));
+    }
+  });
+}
+function saveEq(){
+  const vals = eqSliders.map(s=> parseFloat(s.value));
+  localStorage.setItem('eqSettings', JSON.stringify(vals));
+}
+function loadEq(){
+  const stored = localStorage.getItem('eqSettings');
+  const vals = stored ? JSON.parse(stored) : EQ_PRESETS.flat;
+  audio._ensureCtx?.().then(()=> applyEq(vals));
+}
+eqSliders.forEach((sl,i)=>{
+  sl.addEventListener('input', ()=>{ audio.setEqGain(i, parseFloat(sl.value)); saveEq(); });
+});
+eqPresetBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const preset = btn.dataset.preset;
+    const vals = EQ_PRESETS[preset];
+    if(vals){ applyEq(vals); saveEq(); }
+  });
+});
+loadEq();
 
 btnSettings.addEventListener('click', ()=> {
   settingsPanel.hidden = !settingsPanel.hidden;
