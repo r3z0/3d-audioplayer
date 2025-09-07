@@ -12,11 +12,11 @@
   <!-- Top HUD -->
     <div id="appControls" class="fixed left-3 right-3 top-3 z-[1000] grid gap-1.5 p-2.5 bg-deep-panel dark:bg-dark-panel backdrop-blur rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.35)]">
     <div class="flex flex-wrap items-center gap-2">
-      <button id="micBtn" title="Use Microphone" class="hover:bg-[#22365d]">🎙️ Mic</button>
-      <input id="fileInput" type="file" accept="audio/*" multiple title="Add audio files"/>
-      <button id="playBtn" title="Play / Pause" class="hover:bg-[#22365d]">⏵</button>
-      <button id="loopBtn" title="Loop Mode" class="hover:bg-[#22365d]">🔁</button>
-      <input id="scrubber" type="range" min="0" max="0" step="0.01" value="0" />
+      <button id="micBtn" title="Use Microphone" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">🎙️ Mic</button>
+      <input id="fileInput" type="file" accept="audio/*" multiple title="Add audio files" class="file:px-2 file:py-1 file:rounded-lg file:border-0 file:bg-[#1a2b4a] hover:file:bg-[#22365d] file:text-deep-text dark:file:text-dark-text cursor-pointer"/>
+      <button id="playBtn" title="Play / Pause" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">⏵</button>
+      <button id="loopBtn" title="Loop Mode" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">🔁</button>
+      <input id="scrubber" type="range" min="0" max="0" step="0.01" value="0" class="cursor-pointer" />
       <span id="timeNow">0:00</span>
       <span id="timeRemain">-0:00</span>
       <label class="inline-flex items-center gap-1.5 text-deep-muted dark:text-dark-muted">
@@ -26,11 +26,11 @@
         <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" hidden />
         <span id="volPct">80%</span>
       </label>
-      <button id="btnFullscreen" title="Fullscreen" class="hover:bg-[#22365d]">⛶</button>
-      <button id="btnSettings" title="Settings" class="hover:bg-[#22365d]">⚙️</button>
-      <button id="btnBeatConfig" title="Beat Settings" class="hover:bg-[#22365d]">🎚️</button>
-      <button id="btnPlaylist" title="Toggle Playlist" class="hover:bg-[#22365d]">📜</button>
-      <button id="smoothToggle" title="Smooth Transition" class="hover:bg-[#22365d]">Smooth</button>
+      <button id="btnFullscreen" title="Fullscreen" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">⛶</button>
+      <button id="btnSettings" title="Settings" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">⚙️</button>
+      <button id="btnBeatConfig" title="Beat Settings" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">🎚️</button>
+      <button id="btnPlaylist" title="Toggle Playlist" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">📜</button>
+      <button id="smoothToggle" title="Smooth Transition" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">Smooth</button>
     </div>
 
       <div class="flex flex-wrap items-center gap-3">
@@ -55,25 +55,25 @@
     <!-- Equalizer Panel -->
     <div id="eqPanel" class="fixed left-1/2 bottom-3 -translate-x-1/2 z-[1001] flex flex-col items-center gap-2 bg-deep-panel dark:bg-dark-panel backdrop-blur rounded-xl px-3 py-2.5 shadow-[0_6px_24px_rgba(0,0,0,0.35)]">
       <div id="eqSliders" class="flex gap-1.5 items-end h-[100px]">
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
       </div>
       <div class="flex gap-2.5 items-center text-[11px]">
         <div class="flex items-center gap-1">
-          <label>HPF <input id="hpfSlider" type="range" min="20" max="1000" step="1" value="20" /></label>
+          <label>HPF <input id="hpfSlider" type="range" min="20" max="1000" step="1" value="20" class="cursor-pointer" /></label>
           <label class="flex items-center gap-1"><input id="hpfAudioToggle" type="checkbox" checked />Audio</label>
           <label class="flex items-center gap-1"><input id="hpfLedToggle" type="checkbox" checked />LEDs</label>
         </div>
         <div class="flex items-center gap-1">
-          <label>LPF <input id="lpfSlider" type="range" min="1000" max="20000" step="100" value="20000" /></label>
+          <label>LPF <input id="lpfSlider" type="range" min="1000" max="20000" step="100" value="20000" class="cursor-pointer" /></label>
           <label class="flex items-center gap-1"><input id="lpfAudioToggle" type="checkbox" checked />Audio</label>
           <label class="flex items-center gap-1"><input id="lpfLedToggle" type="checkbox" checked />LEDs</label>
         </div>
@@ -82,9 +82,9 @@
         <label class="flex items-center gap-1"><input id="eqOverlayToggle" type="checkbox" />Overlay</label>
       </div>
       <div class="flex gap-1.5">
-        <button class="eq-preset hover:bg-[#22365d]" data-preset="flat">Flat</button>
-        <button class="eq-preset hover:bg-[#22365d]" data-preset="rock">Rock</button>
-        <button class="eq-preset hover:bg-[#22365d]" data-preset="pop">Pop</button>
+        <button class="eq-preset px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]" data-preset="flat">Flat</button>
+        <button class="eq-preset px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]" data-preset="rock">Rock</button>
+        <button class="eq-preset px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]" data-preset="pop">Pop</button>
       </div>
     </div>
 
@@ -93,19 +93,19 @@
     <div class="font-bold mb-2">Settings</div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Theme</label>
-      <select id="themeSel">
+      <select id="themeSel" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">
         <option value="deep">Deep Blue (default)</option>
         <option value="dark">Dark Grey</option>
       </select>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Bloom</label>
-      <input id="bloomStrength" type="range" min="0" max="1.2" step="0.01" value="0.55" />
+      <input id="bloomStrength" type="range" min="0" max="1.2" step="0.01" value="0.55" class="cursor-pointer" />
       <span id="bloomVal">0.55</span>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Fog density</label>
-      <input id="fogDensity" type="range" min="0" max="0.15" step="0.001" value="0.06" />
+      <input id="fogDensity" type="range" min="0" max="0.15" step="0.001" value="0.06" class="cursor-pointer" />
       <span id="fogVal">0.06</span>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
@@ -127,28 +127,28 @@
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2" id="eqRow">
       <label>Equalizer</label>
       <div id="eqSliders" class="flex gap-1.5 items-end h-[100px]">
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
-        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr]" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="0" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>32</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="1" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>64</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="2" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>125</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="3" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>250</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="4" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>500</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="5" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>1k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="6" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>2k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="7" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>4k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="8" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>8k</span></div>
+        <div class="flex flex-col items-center text-[11px]"><input class="eq-slider w-2 h-20 [appearance:slider-vertical] [writing-mode:bt-lr] cursor-pointer" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
       </div>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2" id="eqPresetRow">
       <label>Presets</label>
       <div class="flex gap-1.5">
-        <button class="eq-preset hover:bg-[#22365d]" data-preset="flat">Flat</button>
-        <button class="eq-preset hover:bg-[#22365d]" data-preset="rock">Rock</button>
-        <button class="eq-preset hover:bg-[#22365d]" data-preset="pop">Pop</button>
+        <button class="eq-preset px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]" data-preset="flat">Flat</button>
+        <button class="eq-preset px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]" data-preset="rock">Rock</button>
+        <button class="eq-preset px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]" data-preset="pop">Pop</button>
       </div>
     </div>
     <div class="flex justify-end gap-1.5">
-      <button id="clearBeats" class="hover:bg-[#22365d]">Clear Beat Marks</button>
+      <button id="clearBeats" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">Clear Beat Marks</button>
     </div>
   </div>
 
@@ -157,43 +157,43 @@
     <div class="font-bold mb-2">Beat Settings</div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Kick range</label>
-      <div class="flex items-center gap-1"><input id="kickFrom" type="number" min="20" max="20000" value="40" class="w-[60px]"> –
-      <input id="kickTo" type="number" min="20" max="20000" value="200" class="w-[60px]"></div>
+      <div class="flex items-center gap-1"><input id="kickFrom" type="number" min="20" max="20000" value="40" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"> –
+      <input id="kickTo" type="number" min="20" max="20000" value="200" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"></div>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Kick threshold</label>
-      <input id="kickTh" type="range" min="0" max="1" step="0.01" value="0.6" />
+      <input id="kickTh" type="range" min="0" max="1" step="0.01" value="0.6" class="cursor-pointer" />
       <span id="kickThVal">0.60</span>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Snare low</label>
-      <div class="flex items-center gap-1"><input id="snareLowFrom" type="number" min="20" max="20000" value="120" class="w-[60px]"> –
-      <input id="snareLowTo" type="number" min="20" max="20000" value="250" class="w-[60px]"></div>
+      <div class="flex items-center gap-1"><input id="snareLowFrom" type="number" min="20" max="20000" value="120" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"> –
+      <input id="snareLowTo" type="number" min="20" max="20000" value="250" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"></div>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Snare high</label>
-      <div class="flex items-center gap-1"><input id="snareHighFrom" type="number" min="20" max="20000" value="2000" class="w-[60px]"> –
-      <input id="snareHighTo" type="number" min="20" max="20000" value="5000" class="w-[60px]"></div>
+      <div class="flex items-center gap-1"><input id="snareHighFrom" type="number" min="20" max="20000" value="2000" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"> –
+      <input id="snareHighTo" type="number" min="20" max="20000" value="5000" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"></div>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Snare threshold</label>
-      <input id="snareTh" type="range" min="0" max="1" step="0.01" value="0.5" />
+      <input id="snareTh" type="range" min="0" max="1" step="0.01" value="0.5" class="cursor-pointer" />
       <span id="snareThVal">0.50</span>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Hat range</label>
-      <div class="flex items-center gap-1"><input id="hatFrom" type="number" min="20" max="20000" value="6000" class="w-[60px]"> –
-      <input id="hatTo" type="number" min="20" max="20000" value="16000" class="w-[60px]"></div>
+      <div class="flex items-center gap-1"><input id="hatFrom" type="number" min="20" max="20000" value="6000" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"> –
+      <input id="hatTo" type="number" min="20" max="20000" value="16000" class="w-[60px] px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]"></div>
     </div>
     <div class="grid grid-cols-[1fr_auto] items-center gap-2.5 my-2">
       <label>Hat threshold</label>
-      <input id="hatTh" type="range" min="0" max="1" step="0.01" value="0.45" />
+      <input id="hatTh" type="range" min="0" max="1" step="0.01" value="0.45" class="cursor-pointer" />
       <span id="hatThVal">0.45</span>
     </div>
     <div class="flex justify-end gap-1.5">
-      <button id="beatCancel" class="hover:bg-[#22365d]">Cancel</button>
-      <button id="beatSave" class="hover:bg-[#22365d]">Save</button>
-      <button id="beatClose" class="hover:bg-[#22365d]">Close</button>
+      <button id="beatCancel" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">Cancel</button>
+      <button id="beatSave" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">Save</button>
+      <button id="beatClose" class="px-2 py-1 rounded-lg bg-[#1a2b4a] hover:bg-[#22365d]">Close</button>
     </div>
   </div>
 
