@@ -240,9 +240,39 @@ async function loadPlaylistFromDB(){
 }
 
 // ---------- Playlist UI ----------
+function formatTime(sec){
+  if(!isFinite(sec)) return '--:--';
+  const m = Math.floor(sec/60);
+  const s = Math.floor(sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+function formatBytes(bytes){
+  if (bytes >= 1<<20) return `${(bytes/(1<<20)).toFixed(1)} MB`;
+  if (bytes >= 1<<10) return `${(bytes/(1<<10)).toFixed(1)} KB`;
+  return `${bytes} B`;
+}
+
 function renderPlaylist(){
   plList.innerHTML = '';
   playlist.forEach((it, idx)=>{
+    if (it.file && typeof it.duration !== 'number') {
+      try {
+        const audioEl = new Audio();
+        audioEl.preload = 'metadata';
+        const url = URL.createObjectURL(it.file);
+        audioEl.src = url;
+        audioEl.addEventListener('loadedmetadata', () => {
+          it.duration = audioEl.duration;
+          URL.revokeObjectURL(url);
+          renderPlaylist();
+        });
+        audioEl.addEventListener('error', () => {
+          URL.revokeObjectURL(url);
+        });
+      } catch(err){
+        console.warn('duration load failed', err);
+      }
+    }
     const li = document.createElement('li');
     li.draggable = true;
     li.dataset.idx = idx.toString();
@@ -250,8 +280,12 @@ function renderPlaylist(){
       display:flex; gap:6px; align-items:center; padding:6px; border-radius:8px;
       background:${idx===currentIndex ? 'rgba(90,130,255,0.22)' : 'rgba(255,255,255,0.06)'};
     `;
+    const durStr = typeof it.duration === 'number' ? formatTime(it.duration) : '--:--';
+    const sizeStr = it.file ? formatBytes(it.file.size) : '';
     li.innerHTML = `
-      <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.name}</div>
+      <div class="pl-name">${it.name}</div>
+      <div class="pl-duration">${durStr}</div>
+      <div class="pl-size">${sizeStr}</div>
       <button data-act="play" title="Play">▶</button>
       <button data-act="up" title="Move up">↑</button>
       <button data-act="down" title="Move down">↓</button>
