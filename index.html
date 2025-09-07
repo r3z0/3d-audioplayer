@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Three.js + Audio Starter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Canvas mount -->
+  <div id="app"></div>
+
+  <!-- Top HUD -->
+  <div id="appControls" class="hud">
+    <div class="row">
+      <button id="micBtn" title="Use Microphone">🎙️ Mic</button>
+      <input id="fileInput" type="file" accept="audio/*" multiple title="Add audio files"/>
+      <button id="playBtn" title="Play / Pause">⏵</button>
+      <input id="scrubber" type="range" min="0" max="0" step="0.01" value="0" />
+      <span id="timeNow">0:00</span>
+      <span id="timeRemain">-0:00</span>
+      <label class="vol">
+        🔊
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" />
+        <span id="volPct">80%</span>
+      </label>
+    </div>
+    <div class="row meta">
+      <span id="trackTitle">No track</span>
+      <span id="trackStatus">stopped</span>
+      <canvas id="miniSpec" width="220" height="60"></canvas>
+      <div class="leds">
+        <span id="ledKick"  class="led off">KICK</span>
+        <span id="ledSnare" class="led off">SNARE</span>
+        <span id="ledHat"   class="led off">HAT</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drag & Drop Overlay -->
+  <div id="dropzone" class="dropzone" style="display:none;">
+    <div>Drop audio files to add to the playlist…</div>
+  </div>
+
+  <!-- Playlist panel is created by main.js (top-right) -->
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

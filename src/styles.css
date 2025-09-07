@@ -1,0 +1,87 @@
+:root {
+  --bg: #05122f;
+  --panel: rgba(13, 19, 33, 0.75);
+  --text: #e8f0ff;
+  --muted: #9fb7d9;
+  --accent: #8fb3ff;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+}
+#app {
+  position: fixed; inset: 0;
+}
+
+.hud {
+  position: fixed;
+  left: 12px; right: 12px; top: 12px;
+  z-index: 1000;
+  display: grid; gap: 6px;
+  padding: 10px;
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+}
+.hud .row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.hud .row.meta {
+  gap: 12px;
+}
+#trackTitle { font-weight: 600; color: var(--text); }
+#trackStatus { color: var(--muted); }
+#miniSpec {
+  width: 260px; height: 60px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+}
+button, input[type="file"]::-webkit-file-upload-button {
+  background: #1a2b4a;
+  color: var(--text);
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:hover { background: #22365d; }
+input[type="range"] { cursor: pointer; }
+label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+
+.dropzone {
+  position: fixed; inset: 0; z-index: 1200;
+  display: grid; place-items: center;
+  background: rgba(4,10,20,0.65);
+  color: var(--text);
+  font-size: 18px;
+  pointer-events: none;
+}
+.dropzone > div {
+  padding: 18px 22px;
+  background: #0e1830;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.35);
+}
+
+.leds { display: inline-flex; gap: 6px; align-items: center; }
+.led {
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  color: #b9c9ff;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.led.on  { background: #6be3ff; color: #00121f; border-color: #89f0ff; }
+.led.off { opacity: 0.55; }
+
+#playlistPanel button {
+  background: #1a2b4a; color: var(--text);
+  border: none; padding: 4px 8px; border-radius: 8px;
+}
+#playlistPanel li button { padding: 2px 6px; }
