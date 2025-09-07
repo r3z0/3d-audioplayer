@@ -306,7 +306,6 @@ window.addEventListener('drop', async e=>{
   renderPlaylist();
   if (currentIndex < 0) await playIndex(0);
 });
-function setDropText(text){ if(!dropzone) return; dropzone.style.display='grid'; dropzone.innerHTML = `<div>${text}</div>`; }
 
 // ---------- Resize ----------
 window.addEventListener('resize', onResize);
