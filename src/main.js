@@ -295,23 +295,22 @@ plLoad.addEventListener('click', loadPlaylistFromDB);
 
 async function playIndex(i){
   const item = playlist[i]; if (!item) return;
-  try{
-    await audio._ensureCtx?.();
-    if (audio.ctx && audio.ctx.state==='suspended') await audio.ctx.resume();
-    setDropText('Song loading… 0%');
-    // item.file can be Blob or File
-    const f = item.file instanceof File ? item.file : new File([item.file], item.name, { type: item.file.type || 'audio/*' });
-    await audio.useFile(f, p => setDropText(`Song loading… ${p}%`));
-    currentIndex = i;
-    renderPlaylist();
-    updateHUDState();
-  } finally { 
-    console.log('Done loading song.', dropzone);
-    if (dropzone) {
-      console.log('Dropped dropzone!');
+  await audio._ensureCtx?.();
+  if (audio.ctx && audio.ctx.state==='suspended') await audio.ctx.resume();
+  setDropText('Song loading… 0%');
+  // item.file can be Blob or File
+  const f = item.file instanceof File ? item.file : new File([item.file], item.name, { type: item.file.type || 'audio/*' });
+
+  return audio.useFile(f, p => setDropText(`Song loading… ${p}%`))
+    .then(() => {
+      currentIndex = i;
+      renderPlaylist();
+      updateHUDState();
       hideDrop();
-    }
-  }
+    })
+    .catch(err => {
+      console.error('Error loading song.', err);
+    });
 }
 
 // Attempt to load saved playlist on start
