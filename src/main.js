@@ -209,14 +209,6 @@ const plNext  = playlistPanel.querySelector('#pl-next');
 const plSave  = playlistPanel.querySelector('#pl-save');
 const plLoad  = playlistPanel.querySelector('#pl-load');
 
-const coverModal = document.getElementById('coverModal');
-const coverModalImg = coverModal?.querySelector('img');
-coverModal?.addEventListener('click', e => {
-  if (e.target === coverModal) {
-    coverModal.style.display = 'none';
-    if (coverModalImg) coverModalImg.src = '';
-  }
-});
 function showCoverModal(url){
   if (!coverModal || !coverModalImg) return;
   coverModalImg.src = url;
