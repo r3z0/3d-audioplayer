@@ -39,7 +39,6 @@ Quick start
 1) Clone or copy the files
 your-project/
 ├─ index.html
-├─ styles.css
 └─ src/
    ├─ main.js
    └─ audio.js
@@ -133,7 +132,6 @@ For smoother motion, apply exponential decay/lerp rather than snapping to band v
 
 File overview
 index.html     # Canvas mount + HUD scaffolding
-styles.css     # Minimal glassy UI styles
 src/
   audio.js     # Web Audio wrapper: file/mic sources, analyser, bands, onsets
   main.js      # Three.js setup, postprocessing, playlist & HUD wiring, render loop
