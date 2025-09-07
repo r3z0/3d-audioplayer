@@ -317,8 +317,12 @@ async function playIndex(i){
   // item.file can be Blob or File
   const f = item.file instanceof File ? item.file : new File([item.file], item.name, { type: item.file.type || 'audio/*' });
 
-  return audio.useFile(f, p => setDropText(`Song loading… ${p}%`))
-    .then(() => {
+  return audio.useFile(f, p => {
+      setDropText(`Song loading… ${p}%`)
+      console.log(`Loading progress: ${p}%`);
+      if(p>=100) hideDrop();
+    })
+    .then((f, p) => {
       currentIndex = i;
       renderPlaylist();
       updateHUDState();
@@ -496,15 +500,15 @@ window.addEventListener('keydown', (e)=>{
 function showDrop(e){ 
   e.preventDefault();
   e.stopPropagation(); 
-  console.log('show drop zone'); 
-  if(dropzone) dropzone.style.display='grid'; }
+  if(dropzone) dropzone.style.display='grid'; 
+  console.log('show drop zone', dropzone); 
+}
 
 function hideDrop(e){
-  console.log('hide drop zone event:', e?.type);
   e?.preventDefault?.();
   e?.stopPropagation?.();
-  console.log('hide drop zone');
   if(dropzone) dropzone.style.display='none';
+  console.log('hide drop zone', dropzone);
 }
 
 ['dragenter','dragover'].forEach(ev=>window.addEventListener(ev,showDrop,{passive:false}));
@@ -524,7 +528,12 @@ window.addEventListener('drop', async e=>{
   await savePlaylistToDB();
 });
 
-function setDropText(text){ if(!dropzone) return; dropzone.style.display='grid'; dropzone.innerHTML = `<div>${text}</div>`; }
+function setDropText(text){ 
+  if(!dropzone) return; 
+  console.log('set drop text', text);
+  dropzone.style.display='grid'; 
+  dropzone.innerHTML = `<div>${text}</div>`; 
+}
 
 // ---------- Resize ----------
 window.addEventListener('resize', onResize);
