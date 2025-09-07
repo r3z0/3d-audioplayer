@@ -3,29 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --bg: #05122f;        /* deep theme */
-    --bg-2: #06122c;
-    --panel: rgba(13, 19, 33, 0.75);
-    --text: #e8f0ff;
-    --muted: #9fb7d9;
-    --accent: #8fb3ff;
-  }
-  html.dark {
-    --bg: #0a0a0a;        /* dark theme */
-    --bg-2: #141414;
-    --panel: rgba(20,20,20,0.78);
-    --text: #f2f2f2;
-    --muted: #b8b8b8;
-    --accent: #9cc0ff;
-  }
-
   html, body {
     padding: 0;
     height: 100%;
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
+  }
+  body {
     font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
   }
   #app { position: fixed; inset: 0; }
@@ -34,7 +17,6 @@
 @layer components {
   button, input[type="file"]::-webkit-file-upload-button {
     background: #1a2b4a;
-    color: var(--text);
     border: none;
     padding: 6px 10px;
     border-radius: 8px;
