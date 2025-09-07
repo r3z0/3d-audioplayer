@@ -553,6 +553,10 @@ const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
 
 const hpfSlider = document.getElementById('hpfSlider');
 const lpfSlider = document.getElementById('lpfSlider');
+const hpfAudioToggle = document.getElementById('hpfAudioToggle');
+const hpfLedToggle = document.getElementById('hpfLedToggle');
+const lpfAudioToggle = document.getElementById('lpfAudioToggle');
+const lpfLedToggle = document.getElementById('lpfLedToggle');
 const eqOverlayToggle = document.getElementById('eqOverlayToggle');
 const eqAudioToggle = document.getElementById('eqAudioToggle');
 const eqLedToggle = document.getElementById('eqLedToggle');
@@ -576,12 +580,28 @@ function applyEqGains(values){
 function applyEq(data){
   applyEqGains(data.gains || EQ_PRESETS.flat);
   if(hpfSlider){
-    hpfSlider.value = data.hpf ?? 20;
+    hpfSlider.value = data.hpf?.freq ?? 20;
     audio.setHighpass(parseFloat(hpfSlider.value));
   }
+  if(hpfAudioToggle){
+    hpfAudioToggle.checked = data.hpf?.audio ?? true;
+    audio.setHpfAudioEnabled(hpfAudioToggle.checked);
+  }
+  if(hpfLedToggle){
+    hpfLedToggle.checked = data.hpf?.led ?? true;
+    audio.setHpfLedEnabled(hpfLedToggle.checked);
+  }
   if(lpfSlider){
-    lpfSlider.value = data.lpf ?? 20000;
+    lpfSlider.value = data.lpf?.freq ?? 20000;
     audio.setLowpass(parseFloat(lpfSlider.value));
+  }
+  if(lpfAudioToggle){
+    lpfAudioToggle.checked = data.lpf?.audio ?? true;
+    audio.setLpfAudioEnabled(lpfAudioToggle.checked);
+  }
+  if(lpfLedToggle){
+    lpfLedToggle.checked = data.lpf?.led ?? true;
+    audio.setLpfLedEnabled(lpfLedToggle.checked);
   }
   if(eqOverlayToggle){
     eqOverlayToggle.checked = data.overlay ?? false;
@@ -598,8 +618,16 @@ function applyEq(data){
 function saveEq(){
   const data = {
     gains: eqSliders.map(s=> parseFloat(s.value)),
-    hpf: parseFloat(hpfSlider?.value || 20),
-    lpf: parseFloat(lpfSlider?.value || 20000),
+    hpf: {
+      freq: parseFloat(hpfSlider?.value || 20),
+      audio: hpfAudioToggle?.checked ?? true,
+      led: hpfLedToggle?.checked ?? true,
+    },
+    lpf: {
+      freq: parseFloat(lpfSlider?.value || 20000),
+      audio: lpfAudioToggle?.checked ?? true,
+      led: lpfLedToggle?.checked ?? true,
+    },
     overlay: eqOverlayToggle?.checked || false,
     audio: eqAudioToggle?.checked ?? true,
     leds: eqLedToggle?.checked ?? true
@@ -608,7 +636,14 @@ function saveEq(){
 }
 function loadEq(){
   const stored = localStorage.getItem('eqSettings');
-  const data = stored ? JSON.parse(stored) : { gains: EQ_PRESETS.flat, hpf:20, lpf:20000, overlay:false, audio:true, leds:true };
+  const data = stored ? JSON.parse(stored) : {
+    gains: EQ_PRESETS.flat,
+    hpf: { freq:20, audio:true, led:true },
+    lpf: { freq:20000, audio:true, led:true },
+    overlay:false,
+    audio:true,
+    leds:true
+  };
   audio._ensureCtx?.().then(()=> applyEq(data));
 }
 eqSliders.forEach((sl,i)=>{
@@ -628,6 +663,10 @@ eqPresetBtns.forEach(btn=>{
 });
 loadEq();
 
+hpfAudioToggle?.addEventListener('change', ()=>{ audio.setHpfAudioEnabled(hpfAudioToggle.checked); saveEq(); });
+hpfLedToggle?.addEventListener('change', ()=>{ audio.setHpfLedEnabled(hpfLedToggle.checked); saveEq(); });
+lpfAudioToggle?.addEventListener('change', ()=>{ audio.setLpfAudioEnabled(lpfAudioToggle.checked); saveEq(); });
+lpfLedToggle?.addEventListener('change', ()=>{ audio.setLpfLedEnabled(lpfLedToggle.checked); saveEq(); });
 eqAudioToggle?.addEventListener('change', ()=>{ audio.setEqAudioEnabled(eqAudioToggle.checked); saveEq(); });
 eqLedToggle?.addEventListener('change', ()=>{ audio.setEqLedEnabled(eqLedToggle.checked); saveEq(); });
 

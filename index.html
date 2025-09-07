@@ -67,8 +67,16 @@
         <div class="eq-band"><input class="eq-slider" data-band="9" type="range" min="-12" max="12" step="0.1" value="0" orient="vertical" /><span>16k</span></div>
       </div>
       <div class="eq-cuts">
-        <label>HPF <input id="hpfSlider" type="range" min="20" max="1000" step="1" value="20" /></label>
-        <label>LPF <input id="lpfSlider" type="range" min="1000" max="20000" step="100" value="20000" /></label>
+        <div class="eq-cut">
+          <label>HPF <input id="hpfSlider" type="range" min="20" max="1000" step="1" value="20" /></label>
+          <label class="eq-toggle"><input id="hpfAudioToggle" type="checkbox" checked />Audio</label>
+          <label class="eq-toggle"><input id="hpfLedToggle" type="checkbox" checked />LEDs</label>
+        </div>
+        <div class="eq-cut">
+          <label>LPF <input id="lpfSlider" type="range" min="1000" max="20000" step="100" value="20000" /></label>
+          <label class="eq-toggle"><input id="lpfAudioToggle" type="checkbox" checked />Audio</label>
+          <label class="eq-toggle"><input id="lpfLedToggle" type="checkbox" checked />LEDs</label>
+        </div>
         <label class="eq-toggle"><input id="eqAudioToggle" type="checkbox" checked />Audio</label>
         <label class="eq-toggle"><input id="eqLedToggle" type="checkbox" checked />LEDs</label>
         <label class="eq-overlay"><input id="eqOverlayToggle" type="checkbox" />Overlay</label>
