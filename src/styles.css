@@ -110,3 +110,9 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
 }
 .panel-row input[type="range"] { width: 160px; }
 .panel-footer { display: flex; justify-content: flex-end; }
+
+/* Equalizer */
+#eqRow .eq-sliders { width:160px; display:flex; gap:6px; align-items:flex-end; height:100px; }
+.eq-band { display:flex; flex-direction:column; align-items:center; font-size:11px; }
+.eq-band input { width:8px; height:80px; -webkit-appearance: slider-vertical; writing-mode: bt-lr; }
+.eq-presets { display:flex; gap:6px; }
