@@ -165,3 +165,28 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
 }
 #pl-list li .pl-duration { width: 48px; }
 #pl-list li .pl-size { width: 60px; }
+
+.pl-cover {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#coverModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.8);
+  z-index: 2000;
+}
+
+#coverModal img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+}
