@@ -608,6 +608,26 @@ const hatFrom = document.getElementById('hatFrom');
 const hatTo = document.getElementById('hatTo');
 const hatTh = document.getElementById('hatTh');
 const hatThVal = document.getElementById('hatThVal');
+
+const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+function buildEqSliders() {
+  const tpl = document.getElementById('eqSliderTemplate');
+  if (!tpl) return;
+  document.querySelectorAll('#eqSliders').forEach(container => {
+    EQ_FREQUENCIES.forEach((f, i) => {
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      const input = node.querySelector('input');
+      const label = node.querySelector('span');
+      input.dataset.band = i;
+      label.textContent = f >= 1000 ? `${f / 1000}k` : `${f}`;
+      container.appendChild(node);
+    });
+  });
+}
+
+buildEqSliders();
+
 const eqSliders = Array.from(document.querySelectorAll('.eq-slider'));
 const eqPresetBtns = Array.from(document.querySelectorAll('.eq-preset'));
 
