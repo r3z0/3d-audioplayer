@@ -220,6 +220,7 @@ async function makePlaylistItem(file){
     name: file.name,
     title: file.name,
     artist: '',
+    album: '',
     file,
     id: crypto.randomUUID?.() || String(Math.random())
   };
@@ -232,6 +233,7 @@ async function makePlaylistItem(file){
     });
     it.title = tag?.tags?.title || it.name;
     it.artist = tag?.tags?.artist || '';
+    it.album = tag?.tags?.album || '';
     const pic = tag?.tags?.picture;
     if (pic) {
       const blob = new Blob([new Uint8Array(pic.data)], { type: pic.format });
@@ -289,6 +291,7 @@ async function loadPlaylistFromDB(){
     name: r.name,
     title: r.name,
     artist: '',
+    album: '',
     id: r.id,
     file: r.blob // Blob (or File)
   }));
@@ -303,40 +306,52 @@ function formatTime(sec){
   const s = Math.floor(sec%60).toString().padStart(2,'0');
   return `${m}:${s}`;
 }
+function formatFileSize(bytes){
+  if(!isFinite(bytes)) return '--';
+  const units=['B','KB','MB','GB'];
+  let i=0; let val=bytes;
+  while(val>=1024 && i<units.length-1){ val/=1024; i++; }
+  return `${val.toFixed(i?1:0)} ${units[i]}`;
+}
 function buildPlaylistItem(it, idx){
   const li = document.createElement('li');
   li.draggable = true;
   li.dataset.idx = idx.toString();
-  li.className = 'flex items-center gap-2 p-1.5 rounded-lg';
-  if (idx === currentIndex) li.classList.add('bg-indigo-500/30');
-  else li.classList.add('bg-white/5', 'hover:bg-white/10');
+  li.className = 'relative flex items-center gap-3 p-2 rounded-md overflow-hidden';
+  if (idx === currentIndex) li.classList.add('bg-gradient-to-r','from-purple-500/30','to-indigo-600/20');
+  else li.classList.add('bg-white/5','hover:bg-white/10');
 
   const durStr = typeof it.duration === 'number' ? formatTime(it.duration) : '--:--';
+  const sizeStr = it.file ? formatFileSize(it.file.size) : '--';
 
   if (it.coverUrl) {
     const img = document.createElement('img');
     img.src = it.coverUrl;
     img.alt = '';
-    img.className = 'w-10 h-10 object-cover rounded cursor-pointer flex-shrink-0';
+    img.className = 'w-12 h-12 object-cover rounded-md cursor-pointer flex-shrink-0';
     img.addEventListener('click', e => { e.stopPropagation(); showCoverModal(it.coverUrl); });
     li.appendChild(img);
   }
 
   const info = document.createElement('div');
-  info.className = 'flex-1 overflow-hidden';
+  info.className = 'flex flex-col overflow-hidden';
   const titleDiv = document.createElement('div');
   titleDiv.className = 'text-sm font-medium truncate';
   titleDiv.textContent = it.title || it.name;
-  const artistDiv = document.createElement('div');
-  artistDiv.className = 'text-xs text-slate-300 truncate';
-  artistDiv.textContent = it.artist || '';
-  info.append(titleDiv, artistDiv);
+  const metaDiv = document.createElement('div');
+  metaDiv.className = 'text-xs text-slate-300 truncate';
+  metaDiv.textContent = [it.artist, it.album].filter(Boolean).join(' • ');
+  info.append(titleDiv, metaDiv);
   li.appendChild(info);
 
+  const stats = document.createElement('div');
+  stats.className = 'ml-auto text-right text-xs text-slate-400 tabular-nums';
   const durDiv = document.createElement('div');
-  durDiv.className = 'text-xs text-slate-300 tabular-nums';
   durDiv.textContent = durStr;
-  li.appendChild(durDiv);
+  const sizeDiv = document.createElement('div');
+  sizeDiv.textContent = sizeStr;
+  stats.append(durDiv, sizeDiv);
+  li.appendChild(stats);
 
   const actions = document.createElement('div');
   actions.className = 'flex gap-1 ml-2';
@@ -355,6 +370,17 @@ function buildPlaylistItem(it, idx){
     actions.appendChild(btn);
   });
   li.appendChild(actions);
+
+  const prog = document.createElement('div');
+  prog.className = 'pl-progress pointer-events-none absolute left-0 bottom-0 h-0.5 bg-purple-400/70';
+  let pct = 0;
+  if (idx === currentIndex) {
+    const cur = audio.getCurrentTime();
+    const dur = audio.getDuration();
+    pct = dur > 0 ? (cur / dur) * 100 : 0;
+  }
+  prog.style.width = `${pct}%`;
+  li.appendChild(prog);
 
   li.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', idx.toString()); });
   li.addEventListener('dragover', e => { e.preventDefault(); });
@@ -1120,7 +1146,12 @@ function tick(){
       if (document.activeElement !== scrubber) scrubber.value = cur.toFixed(2);
       timeNow.textContent = fmtTime(cur);
       timeRemain.textContent = `-${fmtTime(Math.max(0, dur - cur))}`;
+      const pe = plList.querySelector(`li[data-idx="${currentIndex}"] .pl-progress`);
+      if (pe) pe.style.width = `${(cur/dur)*100}%`;
     }
+  } else {
+    const pe = plList.querySelector(`li[data-idx="${currentIndex}"] .pl-progress`);
+    if (pe) pe.style.width = '0%';
   }
   drawBeatTicks();
 
