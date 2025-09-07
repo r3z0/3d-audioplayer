@@ -162,7 +162,9 @@ function updateLEDs(dt){
 // ---------- Playlist panel (IndexedDB persistence) ----------
 const playlistTpl = document.createElement('template');
 playlistTpl.innerHTML = `
-  <div id="playlistPanel" class="fixed right-3 top-3 z-[1000] w-64 max-h-[46vh] overflow-auto bg-slate-900/70 backdrop-blur text-blue-50 text-xs font-sans rounded-xl shadow-xl p-2.5">
+  <div id="playlistPanel"
+       class="absolute right-3 w-64 max-h-[46vh] overflow-auto bg-slate-900/70 backdrop-blur text-blue-50 text-xs font-sans rounded-xl shadow-xl p-2.5"
+       style="z-index:1200;">
     <div class="flex gap-1.5 items-center mb-1.5">
       <strong class="flex-1">Playlist</strong>
       <button id="pl-prev" title="Prev">⏮</button>
@@ -179,6 +181,7 @@ playlistTpl.innerHTML = `
 `;
 const playlistPanel = playlistTpl.content.firstElementChild;
 document.body.appendChild(playlistPanel);
+playlistPanel.hidden = true;
 
 const hud = document.getElementById('appControls');
 const btnPlaylist = document.getElementById('btnPlaylist');
