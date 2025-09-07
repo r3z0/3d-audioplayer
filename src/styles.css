@@ -150,3 +150,19 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
 .eq-cuts label { display:flex; align-items:center; gap:4px; }
 .eq-presets { display:flex; gap:6px; }
 .eq-overlay { font-size:11px; display:flex; align-items:center; gap:4px; }
+
+/* Playlist styles */
+#pl-list li .pl-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#pl-list li .pl-duration,
+#pl-list li .pl-size {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+}
+#pl-list li .pl-duration { width: 48px; }
+#pl-list li .pl-size { width: 60px; }

@@ -102,6 +102,7 @@ const audio = new AudioReactive();
 const micBtn = document.getElementById('micBtn');
 const fileInput = document.getElementById('fileInput');
 const playBtn = document.getElementById('playBtn');
+const loopBtn = document.getElementById('loopBtn');
 const scrubber = document.getElementById('scrubber');
 const timeNow = document.getElementById('timeNow');
 const timeRemain = document.getElementById('timeRemain');
@@ -121,6 +122,10 @@ const dropzone = document.getElementById('dropzone');
 const btnFS = document.getElementById('btnFullscreen');
 const btnSettings = document.getElementById('btnSettings');
 const btnBeatConfig = document.getElementById('btnBeatConfig');
+const smoothToggle = document.getElementById('smoothToggle');
+let smoothTransition = false;
+let loopMode = 'none'; // 'none' | 'playlist' | 'track'
+
 
 // LEDs
 const ledKick  = document.getElementById('ledKick');
@@ -188,6 +193,7 @@ const plLoad  = playlistPanel.querySelector('#pl-load');
 
 let playlist = []; // [{name, file(Blob), id}]
 let currentIndex = -1;
+const FADE_TIME = 0.5;
 
 // ---------- IndexedDB helpers ----------
 const DB_NAME = 'three-audio-starter';
@@ -241,9 +247,39 @@ async function loadPlaylistFromDB(){
 }
 
 // ---------- Playlist UI ----------
+function formatTime(sec){
+  if(!isFinite(sec)) return '--:--';
+  const m = Math.floor(sec/60);
+  const s = Math.floor(sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+function formatBytes(bytes){
+  if (bytes >= 1<<20) return `${(bytes/(1<<20)).toFixed(1)} MB`;
+  if (bytes >= 1<<10) return `${(bytes/(1<<10)).toFixed(1)} KB`;
+  return `${bytes} B`;
+}
+
 function renderPlaylist(){
   plList.innerHTML = '';
   playlist.forEach((it, idx)=>{
+    if (it.file && typeof it.duration !== 'number') {
+      try {
+        const audioEl = new Audio();
+        audioEl.preload = 'metadata';
+        const url = URL.createObjectURL(it.file);
+        audioEl.src = url;
+        audioEl.addEventListener('loadedmetadata', () => {
+          it.duration = audioEl.duration;
+          URL.revokeObjectURL(url);
+          renderPlaylist();
+        });
+        audioEl.addEventListener('error', () => {
+          URL.revokeObjectURL(url);
+        });
+      } catch(err){
+        console.warn('duration load failed', err);
+      }
+    }
     const li = document.createElement('li');
     li.draggable = true;
     li.dataset.idx = idx.toString();
@@ -251,8 +287,12 @@ function renderPlaylist(){
       display:flex; gap:6px; align-items:center; padding:6px; border-radius:8px;
       background:${idx===currentIndex ? 'rgba(90,130,255,0.22)' : 'rgba(255,255,255,0.06)'};
     `;
+    const durStr = typeof it.duration === 'number' ? formatTime(it.duration) : '--:--';
+    const sizeStr = it.file ? formatBytes(it.file.size) : '';
     li.innerHTML = `
-      <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.name}</div>
+      <div class="pl-name">${it.name}</div>
+      <div class="pl-duration">${durStr}</div>
+      <div class="pl-size">${sizeStr}</div>
       <button data-act="play" title="Play">▶</button>
       <button data-act="up" title="Move up">↑</button>
       <button data-act="down" title="Move down">↓</button>
@@ -299,6 +339,10 @@ function renderPlaylist(){
         await savePlaylistToDB();
       }
     });
+    li.addEventListener('dblclick', async (e)=>{
+      if (e.target.closest('button')) return;
+      await playIndex(idx);
+    });
     plList.appendChild(li);
   });
 }
@@ -319,13 +363,28 @@ plLoad.addEventListener('click', loadPlaylistFromDB);
 async function playIndex(i){
   const item = playlist[i]; if (!item) return;
   await audio._ensureCtx?.();
+  const g = audio.gain?.gain;
+  const startVol = audio.getVolume();
+
+  if (smoothTransition && g && audio.media?.el){
+    const now = audio.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(startVol, now);
+    g.linearRampToValueAtTime(0, now + FADE_TIME);
+    await new Promise(r=>setTimeout(r, FADE_TIME*1000));
+    audio.media.el.removeEventListener('ended', handleTrackEnded);
+  } else if (audio.media?.el){
+    audio.media.el.removeEventListener('ended', handleTrackEnded);
+  }
+
   if (audio.ctx && audio.ctx.state==='suspended') await audio.ctx.resume();
   setDropText('Song loading… 0%');
   // item.file can be Blob or File
   const f = item.file instanceof File ? item.file : new File([item.file], item.name, { type: item.file.type || 'audio/*' });
 
-  return audio.useFile(f, p => {
-      setDropText(`Song loading… ${p}%`)
+  try {
+    await audio.useFile(f, p => {
+      setDropText(`Song loading… ${p}%`);
       console.log(`Loading progress: ${p}%`);
       if(p>=100) hideDrop();
     })
@@ -334,10 +393,51 @@ async function playIndex(i){
       renderPlaylist();
       updateHUDState();
       hideDrop();
+      if (audio.media?.el) {
+        audio.media.el.onended = () => {
+          if (loopMode === 'track') {
+            playIndex(currentIndex);
+          } else if (loopMode === 'playlist') {
+            const next = (currentIndex + 1) % playlist.length;
+            playIndex(next);
+          } else {
+            const next = currentIndex + 1;
+            if (next < playlist.length) {
+              playIndex(next);
+            }
+          }
+        };
+      }
     })
     .catch(err => {
       console.error('Error loading song.', err);
     });
+  } catch(err){
+    console.error('Error loading song.', err);
+    return;
+  }
+
+  currentIndex = i;
+  renderPlaylist();
+  updateHUDState();
+  hideDrop();
+
+  if (audio.media?.el) audio.media.el.addEventListener('ended', handleTrackEnded);
+
+  if (smoothTransition && g){
+    const now = audio.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(0, now);
+    g.linearRampToValueAtTime(startVol, now + FADE_TIME);
+  } else if (g){
+    g.setValueAtTime(startVol, audio.ctx.currentTime);
+  }
+}
+
+async function handleTrackEnded(){
+  if (!playlist.length) return;
+  const i = (currentIndex + 1) % playlist.length;
+  await playIndex(i);
 }
 
 // Attempt to load saved playlist on start
@@ -536,6 +636,8 @@ function updateHUDState(){
   const state = audio.getState();
   trackStatus.textContent = audio.isActive() ? state : 'stopped';
   playBtn.textContent = (state === 'running') ? '⏸' : '⏵';
+  loopBtn.textContent = loopMode === 'none' ? '🔁 Off' : loopMode === 'playlist' ? '🔁 All' : '🔂 One';
+  loopBtn.title = `Loop Mode: ${loopMode}`;
   const dur = audio.getDuration();
   scrubber.max = dur ? dur.toString() : '0';
   scrubber.disabled = !audio.isSeekable();
@@ -662,12 +764,21 @@ fileInput.addEventListener('change', async (e)=>{
   await savePlaylistToDB();
 });
 playBtn.addEventListener('click', async ()=>{ try{ await audio.toggle(); updateHUDState(); } catch{} });
+loopBtn.addEventListener('click', ()=>{
+  loopMode = loopMode === 'none' ? 'playlist' : loopMode === 'playlist' ? 'track' : 'none';
+  updateHUDState();
+});
 scrubber.addEventListener('input', ()=>{ if (audio.isSeekable()){ const t=parseFloat(scrubber.value||'0'); audio.seek(Number.isFinite(t)?t:0); }});
 volume.addEventListener('input', ()=>{
   const v=parseFloat(volume.value);
   audio.setVolume(v);
   volPct.textContent=`${Math.round((audio.getVolume()||0)*100)}%`;
   drawVolumeKnob(v);
+});
+
+smoothToggle?.addEventListener('click', ()=>{
+  smoothTransition = !smoothTransition;
+  smoothToggle.textContent = smoothTransition ? 'Smooth ✓' : 'Smooth';
 });
 
 let knobDragging = false;
