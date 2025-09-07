@@ -120,6 +120,9 @@ const waveCtx  = miniWave.getContext('2d');
 const dropzone = document.getElementById('dropzone');
 const btnFS = document.getElementById('btnFullscreen');
 const btnSettings = document.getElementById('btnSettings');
+const smoothToggle = document.getElementById('smoothToggle');
+
+let smoothTransition = false;
 
 // LEDs
 const ledKick  = document.getElementById('ledKick');
@@ -187,6 +190,7 @@ const plLoad  = playlistPanel.querySelector('#pl-load');
 
 let playlist = []; // [{name, file(Blob), id}]
 let currentIndex = -1;
+const FADE_TIME = 0.5;
 
 // ---------- IndexedDB helpers ----------
 const DB_NAME = 'three-audio-starter';
@@ -352,25 +356,57 @@ plLoad.addEventListener('click', loadPlaylistFromDB);
 async function playIndex(i){
   const item = playlist[i]; if (!item) return;
   await audio._ensureCtx?.();
+  const g = audio.gain?.gain;
+  const startVol = audio.getVolume();
+
+  if (smoothTransition && g && audio.media?.el){
+    const now = audio.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(startVol, now);
+    g.linearRampToValueAtTime(0, now + FADE_TIME);
+    await new Promise(r=>setTimeout(r, FADE_TIME*1000));
+    audio.media.el.removeEventListener('ended', handleTrackEnded);
+  } else if (audio.media?.el){
+    audio.media.el.removeEventListener('ended', handleTrackEnded);
+  }
+
   if (audio.ctx && audio.ctx.state==='suspended') await audio.ctx.resume();
   setDropText('Song loading… 0%');
   // item.file can be Blob or File
   const f = item.file instanceof File ? item.file : new File([item.file], item.name, { type: item.file.type || 'audio/*' });
 
-  return audio.useFile(f, p => {
-      setDropText(`Song loading… ${p}%`)
+  try {
+    await audio.useFile(f, p => {
+      setDropText(`Song loading… ${p}%`);
       console.log(`Loading progress: ${p}%`);
       if(p>=100) hideDrop();
-    })
-    .then((f, p) => {
-      currentIndex = i;
-      renderPlaylist();
-      updateHUDState();
-      hideDrop();
-    })
-    .catch(err => {
-      console.error('Error loading song.', err);
     });
+  } catch(err){
+    console.error('Error loading song.', err);
+    return;
+  }
+
+  currentIndex = i;
+  renderPlaylist();
+  updateHUDState();
+  hideDrop();
+
+  if (audio.media?.el) audio.media.el.addEventListener('ended', handleTrackEnded);
+
+  if (smoothTransition && g){
+    const now = audio.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(0, now);
+    g.linearRampToValueAtTime(startVol, now + FADE_TIME);
+  } else if (g){
+    g.setValueAtTime(startVol, audio.ctx.currentTime);
+  }
+}
+
+async function handleTrackEnded(){
+  if (!playlist.length) return;
+  const i = (currentIndex + 1) % playlist.length;
+  await playIndex(i);
 }
 
 // Attempt to load saved playlist on start
@@ -644,6 +680,11 @@ volume.addEventListener('input', ()=>{
   audio.setVolume(v);
   volPct.textContent=`${Math.round((audio.getVolume()||0)*100)}%`;
   drawVolumeKnob(v);
+});
+
+smoothToggle?.addEventListener('click', ()=>{
+  smoothTransition = !smoothTransition;
+  smoothToggle.textContent = smoothTransition ? 'Smooth ✓' : 'Smooth';
 });
 
 let knobDragging = false;
