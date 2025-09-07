@@ -586,19 +586,29 @@ function applyEq(data){
   if(eqOverlayToggle){
     eqOverlayToggle.checked = data.overlay ?? false;
   }
+  if(eqAudioToggle){
+    eqAudioToggle.checked = data.audio ?? true;
+    audio.setEqAudioEnabled(eqAudioToggle.checked);
+  }
+  if(eqLedToggle){
+    eqLedToggle.checked = data.leds ?? true;
+    audio.setEqLedEnabled(eqLedToggle.checked);
+  }
 }
 function saveEq(){
   const data = {
     gains: eqSliders.map(s=> parseFloat(s.value)),
     hpf: parseFloat(hpfSlider?.value || 20),
     lpf: parseFloat(lpfSlider?.value || 20000),
-    overlay: eqOverlayToggle?.checked || false
+    overlay: eqOverlayToggle?.checked || false,
+    audio: eqAudioToggle?.checked ?? true,
+    leds: eqLedToggle?.checked ?? true
   };
   localStorage.setItem('eqSettings', JSON.stringify(data));
 }
 function loadEq(){
   const stored = localStorage.getItem('eqSettings');
-  const data = stored ? JSON.parse(stored) : { gains: EQ_PRESETS.flat, hpf:20, lpf:20000, overlay:false };
+  const data = stored ? JSON.parse(stored) : { gains: EQ_PRESETS.flat, hpf:20, lpf:20000, overlay:false, audio:true, leds:true };
   audio._ensureCtx?.().then(()=> applyEq(data));
 }
 eqSliders.forEach((sl,i)=>{
@@ -618,10 +628,8 @@ eqPresetBtns.forEach(btn=>{
 });
 loadEq();
 
-eqAudioToggle?.addEventListener('change', ()=> audio.setEqAudioEnabled(eqAudioToggle.checked));
-eqLedToggle?.addEventListener('change', ()=> audio.setEqLedEnabled(eqLedToggle.checked));
-audio.setEqAudioEnabled(eqAudioToggle?.checked ?? true);
-audio.setEqLedEnabled(eqLedToggle?.checked ?? true);
+eqAudioToggle?.addEventListener('change', ()=>{ audio.setEqAudioEnabled(eqAudioToggle.checked); saveEq(); });
+eqLedToggle?.addEventListener('change', ()=>{ audio.setEqLedEnabled(eqLedToggle.checked); saveEq(); });
 
 function syncBeatInputs(){
   const r = settings.beatRanges;
