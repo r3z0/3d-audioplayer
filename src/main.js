@@ -307,10 +307,10 @@ async function playIndex(i){
     updateHUDState();
   } finally { 
     console.log('Done loading song.', dropzone);
-    if (dropzone) { 
+    if (dropzone) {
       console.log('Dropped dropzone!');
-      hideDrop(dropzone); 
-    }; 
+      hideDrop();
+    }
   }
 }
 
@@ -484,12 +484,12 @@ function showDrop(e){
   console.log('show drop zone'); 
   if(dropzone) dropzone.style.display='grid'; }
 
-function hideDrop(e){ 
+function hideDrop(e){
   console.log('hide drop zone event:', e?.type);
-  e.preventDefault(); 
-  e.stopPropagation(); 
-  console.log('hide drop zone'); 
-  if(dropzone) dropzone.style.display='none'; 
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  console.log('hide drop zone');
+  if(dropzone) dropzone.style.display='none';
 }
 
 ['dragenter','dragover'].forEach(ev=>window.addEventListener(ev,showDrop,{passive:false}));
