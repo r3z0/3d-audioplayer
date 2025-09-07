@@ -126,18 +126,30 @@ const smoothToggle = document.getElementById('smoothToggle');
 let smoothTransition = false;
 let loopMode = 'none'; // 'none' | 'playlist' | 'track'
 
-
 // LEDs
-const ledKick  = document.getElementById('ledKick');
-const ledSnare = document.getElementById('ledSnare');
-const ledHat   = document.getElementById('ledHat');
-const ledTimers = { kick: 0, snare: 0, hat: 0 };
+const ledSub     = document.getElementById('ledSub');
+const ledBass    = document.getElementById('ledBass');
+const ledLowMid  = document.getElementById('ledLowMid');
+const ledHighMid = document.getElementById('ledHighMid');
+const ledHat     = document.getElementById('ledHat');
+const ledRefs = { sub: ledSub, bass: ledBass, lowMid: ledLowMid, highMid: ledHighMid, hat: ledHat };
+const ledTimers = { sub: 0, bass: 0, lowMid: 0, highMid: 0, hat: 0 };
+const LED_RANGES = {
+  sub: [40, 80],
+  bass: [80, 200],
+  lowMid: [200, 600],
+  highMid: [2000, 5000],
+  hat: [6000, 16000],
+};
+const LED_THRESHOLDS = { sub: 0.6, bass: 0.6, lowMid: 0.5, highMid: 0.5, hat: 0.45 };
 function bumpLED(which, seconds=0.15){ ledTimers[which] = Math.max(ledTimers[which], seconds); }
 function updateLEDs(dt){
-  for (const k of ['kick','snare','hat']) ledTimers[k] = Math.max(0, ledTimers[k] - dt);
-  ledKick.classList.toggle('on', ledTimers.kick>0);  ledKick.classList.toggle('off', !(ledTimers.kick>0));
-  ledSnare.classList.toggle('on', ledTimers.snare>0);ledSnare.classList.toggle('off', !(ledTimers.snare>0));
-  ledHat.classList.toggle('on', ledTimers.hat>0);    ledHat.classList.toggle('off', !(ledTimers.hat>0));
+  for (const k in ledTimers) ledTimers[k] = Math.max(0, ledTimers[k] - dt);
+  for (const k in ledRefs) {
+    const el = ledRefs[k];
+    el.classList.toggle('on', ledTimers[k] > 0);
+    el.classList.toggle('off', !(ledTimers[k] > 0));
+  }
 }
 
 // ---------- Playlist panel (IndexedDB persistence) ----------
@@ -472,6 +484,8 @@ const rgbToggle = document.getElementById('rgbToggle');
 const beatToggle = document.getElementById('beatToggle');
 const clearBeatsBtn = document.getElementById('clearBeats');
 const beatPanel = document.getElementById('beatPanel');
+const beatSave = document.getElementById('beatSave');
+const beatCancel = document.getElementById('beatCancel');
 const beatClose = document.getElementById('beatClose');
 const kickFrom = document.getElementById('kickFrom');
 const kickTo = document.getElementById('kickTo');
@@ -571,12 +585,34 @@ function syncBeatInputs(){
 }
 syncBeatInputs();
 
+
+function applyBeatInputs(){
+  const r = settings.beatRanges;
+  r.kick[0] = parseFloat(kickFrom.value)||0;
+  r.kick[1] = parseFloat(kickTo.value)||0;
+  r.snare1[0] = parseFloat(snareLowFrom.value)||0;
+  r.snare1[1] = parseFloat(snareLowTo.value)||0;
+  r.snare2[0] = parseFloat(snareHighFrom.value)||0;
+  r.snare2[1] = parseFloat(snareHighTo.value)||0;
+  r.hat[0] = parseFloat(hatFrom.value)||0;
+  r.hat[1] = parseFloat(hatTo.value)||0;
+  const th = settings.beatThresholds;
+  th.kick = parseFloat(kickTh.value)||0;
+  th.snare = parseFloat(snareTh.value)||0;
+  th.hat = parseFloat(hatTh.value)||0;
+}
+
 btnBeatConfig?.addEventListener('click', ()=> {
   beatPanel.hidden = !beatPanel.hidden;
   if (!beatPanel.hidden) syncBeatInputs();
 });
-beatClose?.addEventListener('click', ()=> { beatPanel.hidden = true; });
 
+beatCancel?.addEventListener('click', ()=> { syncBeatInputs(); beatPanel.hidden = true; });
+beatSave?.addEventListener('click', ()=> { applyBeatInputs(); beatPanel.hidden = true; });
+kickTh.addEventListener('input', ()=>{ kickThVal.textContent = (parseFloat(kickTh.value)||0).toFixed(2); });
+snareTh.addEventListener('input', ()=>{ snareThVal.textContent = (parseFloat(snareTh.value)||0).toFixed(2); });
+hatTh.addEventListener('input', ()=>{ hatThVal.textContent = (parseFloat(hatTh.value)||0).toFixed(2); });
+beatClose?.addEventListener('click', ()=> { beatPanel.hidden = true; });
 kickFrom.addEventListener('change', ()=>{ settings.beatRanges.kick[0] = parseFloat(kickFrom.value)||0; });
 kickTo.addEventListener('change', ()=>{ settings.beatRanges.kick[1] = parseFloat(kickTo.value)||0; });
 kickTh.addEventListener('input', ()=>{ const v=parseFloat(kickTh.value)||0; settings.beatThresholds.kick=v; kickThVal.textContent=v.toFixed(2); });
@@ -588,6 +624,7 @@ snareTh.addEventListener('input', ()=>{ const v=parseFloat(snareTh.value)||0; se
 hatFrom.addEventListener('change', ()=>{ settings.beatRanges.hat[0] = parseFloat(hatFrom.value)||0; });
 hatTo.addEventListener('change', ()=>{ settings.beatRanges.hat[1] = parseFloat(hatTo.value)||0; });
 hatTh.addEventListener('input', ()=>{ const v=parseFloat(hatTh.value)||0; settings.beatThresholds.hat=v; hatThVal.textContent=v.toFixed(2); });
+
 
 btnSettings.addEventListener('click', ()=> {
   settingsPanel.hidden = !settingsPanel.hidden;
@@ -918,9 +955,14 @@ function tick(){
   const spectrum = audio.getSpectrumArray();
   const timeData = audio.getTimeDomainArray();
   const on = audio.getOnsets ? audio.getOnsets() : {kick:false,snare:false,hat:false,any:false};
-  if (on.kick)  bumpLED('kick');
-  if (on.snare) bumpLED('snare');
-  if (on.hat)   bumpLED('hat');
+  const lv = {
+    sub:     audio.getRangeVolume(...LED_RANGES.sub),
+    bass:    audio.getRangeVolume(...LED_RANGES.bass),
+    lowMid:  audio.getRangeVolume(...LED_RANGES.lowMid),
+    highMid: audio.getRangeVolume(...LED_RANGES.highMid),
+    hat:     audio.getRangeVolume(...LED_RANGES.hat)
+  };
+  for (const k in lv) if (lv[k] >= LED_THRESHOLDS[k]) bumpLED(k);
   updateLEDs(dt);
   const level = audio.getBands ? audio.getBands().overall : 0;
   updateVUMeter(level);

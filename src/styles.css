@@ -123,7 +123,7 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
   margin: 8px 0;
 }
 .panel-row input[type="range"] { width: 160px; }
-.panel-footer { display: flex; justify-content: flex-end; }
+.panel-footer { display: flex; justify-content: flex-end; gap: 6px; }
 
 
 /* Equalizer panel */
