@@ -9,6 +9,7 @@ import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 
 import { AudioReactive } from './audio.js';
+import jsmediatags from 'jsmediatags/dist/jsmediatags.min.js';
 
 // ---------- Renderer ----------
 const app = document.getElementById('app');
@@ -118,6 +119,11 @@ const miniWave = document.getElementById('miniWave');
 const specCtx  = miniSpec.getContext('2d');
 const waveCtx  = miniWave.getContext('2d');
 const dropzone = document.getElementById('dropzone');
+const coverModal = document.getElementById('coverModal');
+const coverModalImg = coverModal?.querySelector('img');
+coverModal?.addEventListener('click', e => {
+  if (e.target === coverModal) coverModal.style.display = 'none';
+});
 const btnFS = document.getElementById('btnFullscreen');
 const btnSettings = document.getElementById('btnSettings');
 const smoothToggle = document.getElementById('smoothToggle');
@@ -295,6 +301,20 @@ function renderPlaylist(){
       <button data-act="down" title="Move down">↓</button>
       <button data-act="del" title="Remove">✕</button>
     `;
+    if (it.coverUrl) {
+      const img = document.createElement('img');
+      img.className = 'pl-cover';
+      img.src = it.coverUrl;
+      img.alt = '';
+      img.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if (coverModal && coverModalImg) {
+          coverModalImg.src = it.coverUrl;
+          coverModal.style.display = 'flex';
+        }
+      });
+      li.prepend(img);
+    }
     li.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', idx.toString()); });
     li.addEventListener('dragover', e => { e.preventDefault(); });
     li.addEventListener('drop', async e => {
@@ -347,7 +367,26 @@ function renderPlaylist(){
 plInput.addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
-  for (const f of files) playlist.push({ name: f.name, file: f, id: crypto.randomUUID?.() || String(Math.random()) });
+  for (const f of files) {
+    const item = { name: f.name, file: f, id: crypto.randomUUID?.() || String(Math.random()) };
+    try {
+      await new Promise((res) => {
+        jsmediatags.read(f, {
+          onSuccess: tag => {
+            const pic = tag.tags.picture;
+            if (pic) {
+              const { data, format } = pic;
+              const blob = new Blob([new Uint8Array(data)], { type: format });
+              item.coverUrl = URL.createObjectURL(blob);
+            }
+            res();
+          },
+          onError: () => res()
+        });
+      });
+    } catch(err) {}
+    playlist.push(item);
+  }
   renderPlaylist();
   if (currentIndex < 0) await playIndex(0);
   await savePlaylistToDB();
