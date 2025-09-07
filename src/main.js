@@ -509,6 +509,8 @@ window.addEventListener('drop', async e=>{
   await savePlaylistToDB();
 });
 
+function setDropText(text){ if(!dropzone) return; dropzone.style.display='grid'; dropzone.innerHTML = `<div>${text}</div>`; }
+
 // ---------- Resize ----------
 window.addEventListener('resize', onResize);
 function onResize(){
