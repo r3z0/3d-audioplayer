@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Three.js + Audio Starter</title>
+  <title>Three.js + Audio Starter — Plus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body>
-  <!-- Canvas mount -->
   <div id="app"></div>
 
   <!-- Top HUD -->
@@ -25,11 +23,19 @@
         <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" />
         <span id="volPct">80%</span>
       </label>
+      <button id="btnFullscreen" title="Fullscreen">⛶</button>
+      <button id="btnSettings" title="Settings">⚙️</button>
     </div>
+
     <div class="row meta">
       <span id="trackTitle">No track</span>
       <span id="trackStatus">stopped</span>
-      <canvas id="miniSpec" width="220" height="60"></canvas>
+
+      <div class="meters">
+        <canvas id="miniSpec" width="260" height="60"></canvas>
+        <canvas id="miniWave" width="260" height="60"></canvas>
+      </div>
+
       <div class="leds">
         <span id="ledKick"  class="led off">KICK</span>
         <span id="ledSnare" class="led off">SNARE</span>
@@ -38,12 +44,51 @@
     </div>
   </div>
 
+  <!-- Settings panel -->
+  <div id="settingsPanel" class="panel" hidden>
+    <div class="panel-title">Settings</div>
+    <div class="panel-row">
+      <label>Theme</label>
+      <select id="themeSel">
+        <option value="deep">Deep Blue (default)</option>
+        <option value="dark">Dark Grey</option>
+      </select>
+    </div>
+    <div class="panel-row">
+      <label>Bloom</label>
+      <input id="bloomStrength" type="range" min="0" max="1.2" step="0.01" value="0.55" />
+      <span id="bloomVal">0.55</span>
+    </div>
+    <div class="panel-row">
+      <label>Fog density</label>
+      <input id="fogDensity" type="range" min="0" max="0.15" step="0.001" value="0.06" />
+      <span id="fogVal">0.06</span>
+    </div>
+    <div class="panel-row">
+      <label>FXAA</label>
+      <input id="fxaaToggle" type="checkbox" checked />
+    </div>
+    <div class="panel-row">
+      <label>Film grain</label>
+      <input id="filmToggle" type="checkbox" checked />
+    </div>
+    <div class="panel-row">
+      <label>Chromatic ab.</label>
+      <input id="rgbToggle" type="checkbox" checked />
+    </div>
+    <div class="panel-row">
+      <label>Beat timeline</label>
+      <input id="beatToggle" type="checkbox" />
+    </div>
+    <div class="panel-footer">
+      <button id="clearBeats">Clear Beat Marks</button>
+    </div>
+  </div>
+
   <!-- Drag & Drop Overlay -->
   <div id="dropzone" class="dropzone" style="display:none;">
     <div>Drop audio files to add to the playlist…</div>
   </div>
-
-  <!-- Playlist panel is created by main.js (top-right) -->
 
   <script type="module" src="./src/main.js"></script>
 </body>
