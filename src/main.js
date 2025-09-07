@@ -102,6 +102,7 @@ const audio = new AudioReactive();
 const micBtn = document.getElementById('micBtn');
 const fileInput = document.getElementById('fileInput');
 const playBtn = document.getElementById('playBtn');
+const loopBtn = document.getElementById('loopBtn');
 const scrubber = document.getElementById('scrubber');
 const timeNow = document.getElementById('timeNow');
 const timeRemain = document.getElementById('timeRemain');
@@ -120,6 +121,8 @@ const waveCtx  = miniWave.getContext('2d');
 const dropzone = document.getElementById('dropzone');
 const btnFS = document.getElementById('btnFullscreen');
 const btnSettings = document.getElementById('btnSettings');
+
+let loopMode = 'none'; // 'none' | 'playlist' | 'track'
 
 // LEDs
 const ledKick  = document.getElementById('ledKick');
@@ -333,6 +336,21 @@ async function playIndex(i){
       renderPlaylist();
       updateHUDState();
       hideDrop();
+      if (audio.media?.el) {
+        audio.media.el.onended = () => {
+          if (loopMode === 'track') {
+            playIndex(currentIndex);
+          } else if (loopMode === 'playlist') {
+            const next = (currentIndex + 1) % playlist.length;
+            playIndex(next);
+          } else {
+            const next = currentIndex + 1;
+            if (next < playlist.length) {
+              playIndex(next);
+            }
+          }
+        };
+      }
     })
     .catch(err => {
       console.error('Error loading song.', err);
@@ -478,6 +496,8 @@ function updateHUDState(){
   const state = audio.getState();
   trackStatus.textContent = audio.isActive() ? state : 'stopped';
   playBtn.textContent = (state === 'running') ? '⏸' : '⏵';
+  loopBtn.textContent = loopMode === 'none' ? '🔁 Off' : loopMode === 'playlist' ? '🔁 All' : '🔂 One';
+  loopBtn.title = `Loop Mode: ${loopMode}`;
   const dur = audio.getDuration();
   scrubber.max = dur ? dur.toString() : '0';
   scrubber.disabled = !audio.isSeekable();
@@ -604,6 +624,10 @@ fileInput.addEventListener('change', async (e)=>{
   await savePlaylistToDB();
 });
 playBtn.addEventListener('click', async ()=>{ try{ await audio.toggle(); updateHUDState(); } catch{} });
+loopBtn.addEventListener('click', ()=>{
+  loopMode = loopMode === 'none' ? 'playlist' : loopMode === 'playlist' ? 'track' : 'none';
+  updateHUDState();
+});
 scrubber.addEventListener('input', ()=>{ if (audio.isSeekable()){ const t=parseFloat(scrubber.value||'0'); audio.seek(Number.isFinite(t)?t:0); }});
 volume.addEventListener('input', ()=>{
   const v=parseFloat(volume.value);
