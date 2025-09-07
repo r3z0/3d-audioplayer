@@ -180,13 +180,16 @@ label.vol { display: inline-flex; align-items: center; gap: 6px; color: var(--mu
   position: fixed;
   inset: 0;
   display: none;
-  align-items: center;
+
   justify-content: center;
+  align-items: center;
   background: rgba(0,0,0,0.8);
-  z-index: 1300;
+  z-index: 2000;
 }
+
 #coverModal img {
   max-width: 90%;
   max-height: 90%;
   border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
 }
