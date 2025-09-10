@@ -35,7 +35,7 @@ export class AudioReactive {
     this.lpfLedEnabled = true;
   }
 
-  async _ensureCtx() {
+  async ensureContext() {
     if (!this.ctx) {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.ctx = ctx;
@@ -162,7 +162,7 @@ export class AudioReactive {
   }
 
   async useFile(file, onProgress) {
-    await this._ensureCtx();
+    await this.ensureContext();
     if (this.isMicActive && this.isMicActive()) await this.stopMic();
 
     const url = URL.createObjectURL(file);
@@ -202,7 +202,7 @@ export class AudioReactive {
   }
 
   async useMic() {
-    await this._ensureCtx();
+    await this.ensureContext();
     if (this.media?.el) { try { this.media.el.pause(); } catch {} }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });

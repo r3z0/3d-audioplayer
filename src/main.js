@@ -481,7 +481,7 @@ plLoad.addEventListener('click', loadPlaylistFromDB);
 
 async function playIndex(i){
   const item = playlist[i]; if (!item) return;
-  await audio._ensureCtx?.();
+  await audio.ensureContext();
   const g = audio.gain?.gain;
   const startVol = audio.getVolume();
 
@@ -724,7 +724,7 @@ function loadEq(){
     audio:true,
     leds:true
   };
-  audio._ensureCtx?.().then(()=> applyEq(data));
+  audio.ensureContext().then(()=> applyEq(data));
 }
 eqSliders.forEach((sl,i)=>{
   sl.addEventListener('input', ()=>{ audio.setEqGain(i, parseFloat(sl.value)); saveEq(); });
@@ -975,7 +975,7 @@ function updateVUMeter(level){
 // ---------- UI events ----------
 micBtn.addEventListener('click', async () => {
   try{
-    await audio._ensureCtx?.();
+    await audio.ensureContext();
     if (audio.isMicActive && audio.isMicActive()){
       await audio.stopMic(); micBtn.textContent='🎙️ Mic';
     } else {
