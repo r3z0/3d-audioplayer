@@ -121,6 +121,7 @@ const miniWave = document.getElementById('miniWave');
 const specCtx  = miniSpec.getContext('2d');
 const waveCtx  = miniWave.getContext('2d');
 const dropzone = document.getElementById('dropzone');
+const dropzoneText = dropzone?.firstElementChild;
 const coverModal = document.getElementById('coverModal');
 const coverModalImg = coverModal?.querySelector('img');
 coverModal?.addEventListener('click', e => {
@@ -1076,9 +1077,12 @@ window.addEventListener('drop', async e=>{
 
 function setDropText(text){
   if(!dropzone) return;
-  console.log('set drop text', text);
   dropzone.classList.remove('hidden');
-  dropzone.innerHTML = `<div>${text}</div>`;
+  if (dropzoneText) {
+    dropzoneText.textContent = text;
+  } else {
+    dropzone.textContent = text;
+  }
 }
 
 // ---------- Resize ----------
