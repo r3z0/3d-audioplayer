@@ -613,7 +613,7 @@ const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 function buildEqSliders() {
   const tpl = document.getElementById('eqSliderTemplate');
   if (!tpl) return;
-  document.querySelectorAll('#eqSliders').forEach(container => {
+  document.querySelectorAll('.eq-sliders').forEach(container => {
     EQ_FREQUENCIES.forEach((f, i) => {
       const node = tpl.content.firstElementChild.cloneNode(true);
       const input = node.querySelector('input');
